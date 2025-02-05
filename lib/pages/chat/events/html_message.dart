@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart';
+import 'package:fluffychat/widgets/avatar.dart';
+import 'package:fluffychat/widgets/mxc_image.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_highlighter/flutter_highlighter.dart';
 import 'package:flutter_highlighter/themes/shades-of-purple.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -8,8 +9,6 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
 import 'package:matrix/matrix.dart';
 
-import 'package:fluffychat/widgets/avatar.dart';
-import 'package:fluffychat/widgets/mxc_image.dart';
 import '../../../utils/url_launcher.dart';
 
 class HtmlMessage extends StatelessWidget {
@@ -463,28 +462,50 @@ class MatrixPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      splashColor: Colors.transparent,
       onTap: UrlLauncher(outerContext, uri).launchUrl,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Avatar(
-            mxContent: avatar,
-            name: name,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            name,
-            style: TextStyle(
-              color: color,
-              decorationColor: color,
-              decoration: TextDecoration.underline,
-              fontSize: fontSize,
-              height: 1.25,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          top: 8.0,
+          bottom: 8.0,
+        ),
+        child: Material(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(outerContext).colorScheme.onPrimaryContainer,
+              width: 0.5,
             ),
           ),
-        ],
+          color: Theme.of(outerContext).colorScheme.primaryContainer,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 8.0,
+              top: 10,
+              bottom: 10,
+              right: 20,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Avatar(
+                  mxContent: avatar,
+                  name: name,
+                  size: 50,
+                ),
+                const SizedBox(width: 6, height: 50),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color:
+                        Theme.of(outerContext).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

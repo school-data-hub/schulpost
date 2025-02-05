@@ -1,14 +1,8 @@
-import 'package:flutter/material.dart';
-
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-
-import 'package:fluffychat/config/app_config.dart';
-import 'package:fluffychat/widgets/adaptive_dialogs/adaptive_dialog_action.dart';
 import 'package:fluffychat/widgets/layouts/login_scaffold.dart';
 import 'package:fluffychat/widgets/matrix.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+
 import '../../config/themes.dart';
 import 'homeserver_picker.dart';
 
@@ -26,54 +20,6 @@ class HomeserverPickerView extends StatelessWidget {
 
     return LoginScaffold(
       enforceMobileMode: Matrix.of(context).client.isLogged(),
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          controller.widget.addMultiAccount
-              ? L10n.of(context).addAccount
-              : L10n.of(context).login,
-        ),
-        actions: [
-          PopupMenuButton<MoreLoginActions>(
-            onSelected: controller.onMoreAction,
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: MoreLoginActions.passwordLogin,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.login_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).loginWithMatrixId),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MoreLoginActions.privacy,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.privacy_tip_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).privacy),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MoreLoginActions.about,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.info_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).about),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -112,28 +58,12 @@ class HomeserverPickerView extends StatelessWidget {
                       child: Hero(
                         tag: 'info-logo',
                         child: Image.asset(
-                          './assets/banner_transparent.png',
+                          './assets/schulpost-banner.png',
                           fit: BoxFit.fitWidth,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                      child: SelectableLinkify(
-                        text: L10n.of(context).appIntroduction,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                        linkStyle: TextStyle(
-                          color: theme.colorScheme.secondary,
-                          decorationColor: theme.colorScheme.secondary,
-                        ),
-                        onOpen: (link) => launchUrlString(link.url),
-                      ),
-                    ),
+
                     const Spacer(),
                     Padding(
                       padding: const EdgeInsets.all(32.0),
@@ -141,73 +71,19 @@ class HomeserverPickerView extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          TextField(
-                            onSubmitted: (_) =>
-                                controller.checkHomeserverAction(),
-                            controller: controller.homeserverController,
-                            autocorrect: false,
-                            keyboardType: TextInputType.url,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search_outlined),
-                              filled: false,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppConfig.borderRadius,
-                                ),
-                              ),
-                              hintText: AppConfig.defaultHomeserver,
-                              hintStyle: TextStyle(
-                                color: theme.colorScheme.surfaceTint,
-                              ),
-                              labelText: 'Sign in with:',
-                              errorText: controller.error,
-                              errorMaxLines: 4,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog.adaptive(
-                                      title: Text(
-                                        L10n.of(context).whatIsAHomeserver,
-                                      ),
-                                      content: Linkify(
-                                        text: L10n.of(context)
-                                            .homeserverDescription,
-                                      ),
-                                      actions: [
-                                        AdaptiveDialogAction(
-                                          onPressed: () => launchUrl(
-                                            Uri.https('servers.joinmatrix.org'),
-                                          ),
-                                          child: Text(
-                                            L10n.of(context)
-                                                .discoverHomeservers,
-                                          ),
-                                        ),
-                                        AdaptiveDialogAction(
-                                          onPressed: Navigator.of(context).pop,
-                                          child: Text(L10n.of(context).close),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.info_outlined),
-                              ),
-                            ),
-                          ),
                           const SizedBox(height: 32),
-                          ElevatedButton(
+                          ElevatedButton.icon(
+                            icon: const Icon(
+                              Icons.login_outlined,
+                              color: Colors.white,
+                            ),
+                            label: Text(L10n.of(context).login.toUpperCase()),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: theme.colorScheme.onPrimary,
                             ),
-                            onPressed: controller.isLoading
-                                ? null
-                                : controller.checkHomeserverAction,
-                            child: controller.isLoading
-                                ? const LinearProgressIndicator()
-                                : Text(L10n.of(context).continueText),
+                            onPressed: controller.qrLogin,
+                            onLongPress: controller.login,
                           ),
                           TextButton(
                             style: TextButton.styleFrom(

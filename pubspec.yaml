@@ -24,7 +24,7 @@ dependencies:
   dynamic_color: ^1.7.0
   emoji_picker_flutter: ^3.1.0
   emojis: ^0.9.9
-  #fcm_shared_isolate: ^0.1.0
+  fcm_shared_isolate: ^0.1.0
   file_picker: ^8.1.2
   file_selector: ^1.0.3
   flutter:
@@ -119,6 +119,7 @@ flutter:
     - assets/sounds/
     - assets/js/
     - assets/js/package/
+    - shorebird.yaml
 
   fonts:
     - family: Ubuntu
@@ -139,10 +140,10 @@ flutter:
         - asset: fonts/NotoEmoji/NotoColorEmoji.ttf
 
 msix_config:
-  display_name: FluffyChat
-  publisher_display_name: FluffyChat
+  display_name: Schulpost
+  publisher_display_name: Schulpost
   publisher: CN=FluffyChat, O=Head of bad integration tests, L=Matrix, S=Internet, C=EU
-  identity_name: chat.fluffy.fluffychat
+  identity_name: de.hermannschule.hermannpost
   logo_path: assets\logo.png
   capabilities: internetClient, location, microphone, webcam
   protocol_activation: https

@@ -51,6 +51,7 @@ Future<void> pushHelper(
           importance: Importance.high,
           priority: Priority.max,
           shortcutId: notification.roomId,
+          icon: 'notifications_icon',
         ),
       ),
     );

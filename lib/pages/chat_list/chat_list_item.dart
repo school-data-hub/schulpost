@@ -45,7 +45,6 @@ class ChatListItem extends StatelessWidget {
         return forgetResult.isValue;
       }
       final confirmed = await showOkCancelAlertDialog(
-        useRootNavigator: false,
         context: context,
         title: L10n.of(context).areYouSure,
         okLabel: L10n.of(context).leave,
@@ -216,9 +215,11 @@ class ChatListItem extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
-                        style: unread || room.hasNewMessages
-                            ? const TextStyle(fontWeight: FontWeight.bold)
-                            : null,
+                        style: TextStyle(
+                          fontWeight: unread || room.hasNewMessages
+                              ? FontWeight.w500
+                              : null,
+                        ),
                       ),
                     ),
                     if (isMuted)
@@ -229,8 +230,7 @@ class ChatListItem extends StatelessWidget {
                           size: 16,
                         ),
                       ),
-                    if (room.isFavourite ||
-                        room.membership == Membership.invite)
+                    if (room.isFavourite)
                       Padding(
                         padding: EdgeInsets.only(
                           right: hasNotifications ? 4.0 : 0.0,
@@ -249,16 +249,15 @@ class ChatListItem extends StatelessWidget {
                         child: Text(
                           lastEvent.originServerTs.localizedTimeShort(context),
                           style: TextStyle(
-                            fontSize: 13,
-                            color: unread
-                                ? theme.colorScheme.secondary
-                                : theme.textTheme.bodyMedium!.color,
+                            fontSize: 12,
+                            color: theme.colorScheme.outline,
                           ),
                         ),
                       ),
                   ],
                 ),
                 subtitle: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     if (typingText.isEmpty &&
@@ -293,6 +292,8 @@ class ChatListItem extends StatelessWidget {
                                 (room.summary.mJoinedMemberCount ?? 1)
                                     .toString(),
                               ),
+                              style:
+                                  TextStyle(color: theme.colorScheme.outline),
                             )
                           : typingText.isNotEmpty
                               ? Text(
@@ -333,9 +334,18 @@ class ChatListItem extends StatelessWidget {
                                   ),
                                   builder: (context, snapshot) => Text(
                                     room.membership == Membership.invite
-                                        ? isDirectChat
-                                            ? L10n.of(context).invitePrivateChat
-                                            : L10n.of(context).inviteGroupChat
+                                        ? room
+                                                .getState(
+                                                  EventTypes.RoomMember,
+                                                  room.client.userID!,
+                                                )
+                                                ?.content
+                                                .tryGet<String>('reason') ??
+                                            (isDirectChat
+                                                ? L10n.of(context)
+                                                    .newChatRequest
+                                                : L10n.of(context)
+                                                    .inviteGroupChat)
                                         : snapshot.data ??
                                             L10n.of(context).emptyChat,
                                     softWrap: false,
@@ -343,10 +353,9 @@ class ChatListItem extends StatelessWidget {
                                         room.notificationCount >= 1 ? 2 : 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontWeight: unread || room.hasNewMessages
-                                          ? FontWeight.bold
-                                          : null,
-                                      color: theme.colorScheme.onSurfaceVariant,
+                                      color: unread || room.hasNewMessages
+                                          ? theme.colorScheme.onSurface
+                                          : theme.colorScheme.outline,
                                       decoration:
                                           room.lastEvent?.redacted == true
                                               ? TextDecoration.lineThrough
@@ -359,6 +368,7 @@ class ChatListItem extends StatelessWidget {
                     AnimatedContainer(
                       duration: FluffyThemes.animationDuration,
                       curve: FluffyThemes.animationCurve,
+                      alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 7),
                       height: unreadBubbleSize,
                       width:
@@ -370,29 +380,28 @@ class ChatListItem extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: room.highlightCount > 0 ||
                                 room.membership == Membership.invite
-                            ? Colors.red
+                            ? theme.colorScheme.error
                             : hasNotifications || room.markedUnread
                                 ? theme.colorScheme.primary
                                 : theme.colorScheme.primaryContainer,
-                        borderRadius:
-                            BorderRadius.circular(AppConfig.borderRadius),
+                        borderRadius: BorderRadius.circular(7),
                       ),
-                      child: Center(
-                        child: hasNotifications
-                            ? Text(
-                                room.notificationCount.toString(),
-                                style: TextStyle(
-                                  color: room.highlightCount > 0
-                                      ? Colors.white
-                                      : hasNotifications
-                                          ? theme.colorScheme.onPrimary
-                                          : theme
-                                              .colorScheme.onPrimaryContainer,
-                                  fontSize: 13,
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
+                      child: hasNotifications
+                          ? Text(
+                              room.notificationCount.toString(),
+                              style: TextStyle(
+                                color: room.highlightCount > 0 ||
+                                        room.membership == Membership.invite
+                                    ? theme.colorScheme.onError
+                                    : hasNotifications
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.onPrimaryContainer,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 ),

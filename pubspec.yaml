@@ -63,7 +63,7 @@ dependencies:
   just_audio: ^0.9.39
   latlong2: ^0.9.1
   linkify: ^5.0.0
-  matrix: ^0.37.0
+  matrix: ^0.38.0
   mime: ^1.0.6
   native_imaging: ^0.1.1
   opus_caf_converter_dart: ^1.0.1
@@ -135,6 +135,8 @@ flutter:
     - family: Ubuntu
       fonts:
         - asset: fonts/Ubuntu/Ubuntu-Regular.ttf
+        - asset: fonts/Ubuntu/Ubuntu-Medium.ttf
+          weight: 500
         - asset: fonts/Ubuntu/Ubuntu-Bold.ttf
           weight: 600
         - asset: fonts/Ubuntu/Ubuntu-Italic.ttf

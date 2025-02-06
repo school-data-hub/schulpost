@@ -6,7 +6,7 @@ import 'app_config.dart';
 abstract class FluffyThemes {
   static const double columnWidth = 380.0;
 
-  static const double navRailWidth = 64.0;
+  static const double navRailWidth = 80.0;
 
   static bool isColumnModeByWidth(double width) =>
       width > columnWidth * 2 + navRailWidth;
@@ -73,7 +73,9 @@ abstract class FluffyThemes {
       brightness: brightness,
       colorScheme: colorScheme,
       textTheme: fallbackTextTheme,
-      dividerColor: colorScheme.surfaceContainer,
+      dividerColor: brightness == Brightness.dark
+          ? colorScheme.surfaceContainerHighest
+          : colorScheme.surfaceContainer,
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConfig.borderRadius),
@@ -144,4 +146,19 @@ abstract class FluffyThemes {
 extension on Brightness {
   Brightness get reversed =>
       this == Brightness.dark ? Brightness.light : Brightness.dark;
+}
+
+extension BubbleColorTheme on ThemeData {
+  Color get bubbleColor => brightness == Brightness.light
+      ? colorScheme.primary
+      : colorScheme.primaryContainer;
+  Color get onBubbleColor => brightness == Brightness.light
+      ? colorScheme.onPrimary
+      : colorScheme.onPrimaryContainer;
+
+  Color get secondaryBubbleColor => HSLColor.fromColor(
+        brightness == Brightness.light
+            ? colorScheme.tertiary
+            : colorScheme.tertiaryContainer,
+      ).withSaturation(0.5).toColor();
 }

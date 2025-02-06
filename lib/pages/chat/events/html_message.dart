@@ -170,7 +170,9 @@ class HtmlMessage extends StatelessWidget {
                 : this.room.client.getRoomByAlias(matrixId);
             return WidgetSpan(
               child: MatrixPill(
-                name: room?.getLocalizedDisplayname() ?? matrixId,
+                name: room?.getLocalizedDisplayname() ??
+                    (matrixId.split(':').first[0].toUpperCase() +
+                        matrixId.split(':').first.substring(1)),
                 avatar: room?.avatar,
                 uri: href,
                 outerContext: context,

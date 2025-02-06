@@ -58,7 +58,12 @@ extension IsStateExtension on Event {
   static const Set<String> importantStateEvents = {
     EventTypes.Encryption,
     EventTypes.RoomCreate,
-    // EventTypes.RoomMember,
+    EventTypes.RoomMember,
+    EventTypes.RoomPowerLevels,
+    EventTypes.RoomAvatar,
+    EventTypes.RoomName,
+    EventTypes.RoomTopic,
+    EventTypes.GuestAccess,
     //EventTypes.RoomTombstone,
     //EventTypes.CallInvite,
   };

@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:fluffychat/widgets/mxc_image.dart';
+import 'package:flutter/material.dart';
+import 'package:matrix/matrix.dart';
 
 class MessageReactions extends StatelessWidget {
   final Event event;
@@ -226,6 +224,9 @@ class _AdaptableReactorsDialog extends StatelessWidget {
     final title = Center(child: Text(reactionEntry!.key));
 
     return AlertDialog.adaptive(
+      titleTextStyle: const TextStyle(
+        fontSize: 50,
+      ),
       title: title,
       content: body,
     );

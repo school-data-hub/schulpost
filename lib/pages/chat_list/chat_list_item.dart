@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
-
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/matrix_locals.dart';
 import 'package:fluffychat/utils/room_status_extension.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_ok_cancel_alert_dialog.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/hover_builder.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:matrix/matrix.dart';
+
 import '../../config/themes.dart';
 import '../../utils/date_time_extension.dart';
 import '../../widgets/avatar.dart';
@@ -18,6 +17,7 @@ enum ArchivedRoomAction { delete, rejoin }
 class ChatListItem extends StatelessWidget {
   final Room room;
   final Room? space;
+  final Event? lastEvent;
   final bool activeChat;
   final void Function(BuildContext context)? onLongPress;
   final void Function()? onForget;
@@ -26,6 +26,7 @@ class ChatListItem extends StatelessWidget {
 
   const ChatListItem(
     this.room, {
+    required this.lastEvent,
     this.activeChat = false,
     required this.onTap,
     this.onLongPress,
@@ -67,7 +68,7 @@ class ChatListItem extends StatelessWidget {
 
     final isMuted = room.pushRuleState != PushRuleState.notify;
     final typingText = room.getLocalizedTypingText(context);
-    final lastEvent = room.lastEvent;
+
     final ownMessage = lastEvent?.senderId == room.client.userID;
     final unread = room.isUnread || room.membership == Membership.invite;
     final directChatMatrixId = room.directChatMatrixID;
@@ -90,7 +91,7 @@ class ChatListItem extends StatelessWidget {
 
     final needLastEventSender = lastEvent == null
         ? false
-        : room.getState(EventTypes.RoomMember, lastEvent.senderId) == null;
+        : room.getState(EventTypes.RoomMember, lastEvent!.senderId) == null;
     final space = this.space;
 
     return Dismissible(
@@ -247,7 +248,7 @@ class ChatListItem extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(left: 4.0),
                         child: Text(
-                          lastEvent.originServerTs.localizedTimeShort(context),
+                          lastEvent!.originServerTs.localizedTimeShort(context),
                           style: TextStyle(
                             fontSize: 12,
                             color: theme.colorScheme.outline,
@@ -309,7 +310,7 @@ class ChatListItem extends StatelessWidget {
                                     '${lastEvent?.eventId}_${lastEvent?.type}_${lastEvent?.redacted}',
                                   ),
                                   future: needLastEventSender
-                                      ? lastEvent.calcLocalizedBody(
+                                      ? lastEvent!.calcLocalizedBody(
                                           MatrixLocals(L10n.of(context)),
                                           hideReply: true,
                                           hideEdit: true,
@@ -347,7 +348,7 @@ class ChatListItem extends StatelessWidget {
                                                 : L10n.of(context)
                                                     .inviteGroupChat)
                                         : snapshot.data ??
-                                            L10n.of(context).emptyChat,
+                                            '...', // L10n.of(context).emptyChat,
                                     softWrap: false,
                                     maxLines:
                                         room.notificationCount >= 1 ? 2 : 1,

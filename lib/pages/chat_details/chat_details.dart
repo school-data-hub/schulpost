@@ -1,11 +1,4 @@
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart';
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/pages/chat_details/chat_details_view.dart';
 import 'package:fluffychat/pages/settings/settings.dart';
 import 'package:fluffychat/utils/file_selector.dart';
@@ -15,6 +8,11 @@ import 'package:fluffychat/widgets/adaptive_dialogs/show_modal_action_popup.dart
 import 'package:fluffychat/widgets/adaptive_dialogs/show_text_input_dialog.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/matrix.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:matrix/matrix.dart';
 
 enum AliasActions { copy, delete, setCanonical }
 
@@ -33,7 +31,11 @@ class ChatDetails extends StatefulWidget {
 }
 
 class ChatDetailsController extends State<ChatDetails> {
+  List<User>? members;
+  List<User>? filteredMembers;
   bool displaySettings = false;
+  int powerlevel = 0;
+  bool canInvite = false;
 
   void toggleDisplaySettings() =>
       setState(() => displaySettings = !displaySettings);
@@ -179,5 +181,18 @@ class ChatDetailsController extends State<ChatDetails> {
   static const fixedWidth = 360.0;
 
   @override
-  Widget build(BuildContext context) => ChatDetailsView(this);
+  Widget build(BuildContext context) {
+    final client = Matrix.of(context).client;
+    final userId = client.userID;
+    members ??= client.getRoomById(roomId!)!.getParticipants();
+    filteredMembers ??= List.from(members!);
+    final thisCanInvite = client.getRoomById(roomId!)?.canInvite;
+    final thisPowerLevel =
+        client.getRoomById(roomId!)?.getPowerLevelByUserId(userId!);
+    setState(() {
+      powerlevel = thisPowerLevel!;
+      canInvite = thisCanInvite!;
+    });
+    return ChatDetailsView(this);
+  }
 }

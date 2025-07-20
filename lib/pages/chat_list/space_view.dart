@@ -1,16 +1,11 @@
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart';
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:go_router/go_router.dart';
-import 'package:matrix/matrix.dart' as sdk;
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/pages/chat_list/chat_list_item.dart';
 import 'package:fluffychat/pages/chat_list/search_title.dart';
 import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/localized_exception_extension.dart';
+import 'package:fluffychat/utils/matrix_sdk_extensions/room_last_visible_event.dart';
 import 'package:fluffychat/utils/stream_extension.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_modal_action_popup.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_ok_cancel_alert_dialog.dart';
@@ -19,6 +14,11 @@ import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:fluffychat/widgets/public_room_bottom_sheet.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:go_router/go_router.dart';
+import 'package:matrix/matrix.dart' as sdk;
+import 'package:matrix/matrix.dart';
 
 enum AddRoomType { chat, subspace }
 
@@ -132,12 +132,11 @@ class _SpaceViewState extends State<SpaceView> {
         break;
       case SpaceActions.leave:
         final confirmed = await showOkCancelAlertDialog(
-          useRootNavigator: false,
           context: context,
           title: L10n.of(context).areYouSure,
-          okLabel: L10n.of(context).ok,
-          cancelLabel: L10n.of(context).cancel,
           message: L10n.of(context).archiveRoomDescription,
+          okLabel: L10n.of(context).leave,
+          cancelLabel: L10n.of(context).cancel,
           isDestructive: true,
         );
         if (!mounted) return;
@@ -232,17 +231,21 @@ class _SpaceViewState extends State<SpaceView> {
         room?.getLocalizedDisplayname() ?? L10n.of(context).nothingFound;
     return Scaffold(
       appBar: AppBar(
-        leading: Center(
-          child: CloseButton(
-            onPressed: widget.onBack,
-          ),
-        ),
-        titleSpacing: 0,
+        leading: FluffyThemes.isColumnMode(context)
+            ? null
+            : Center(
+                child: CloseButton(
+                  onPressed: widget.onBack,
+                ),
+              ),
+        automaticallyImplyLeading: false,
+        titleSpacing: FluffyThemes.isColumnMode(context) ? null : 0,
         title: ListTile(
           contentPadding: EdgeInsets.zero,
           leading: Avatar(
             mxContent: room?.avatar,
             name: displayname,
+            border: BorderSide(width: 1, color: theme.dividerColor),
             borderRadius: BorderRadius.circular(AppConfig.borderRadius / 2),
           ),
           title: Text(
@@ -419,21 +422,31 @@ class _SpaceViewState extends State<SpaceView> {
                         );
                       },
                     ),
-                    SliverList.builder(
-                      itemCount: joinedRooms.length,
-                      itemBuilder: (context, i) {
-                        final joinedRoom = joinedRooms[i];
-                        return ChatListItem(
-                          joinedRoom,
-                          filter: filter,
-                          onTap: () => widget.onChatTab(joinedRoom),
-                          onLongPress: (context) => widget.onChatContext(
-                            joinedRoom,
-                            context,
-                          ),
-                          activeChat: widget.activeChat == joinedRoom.id,
-                        );
-                      },
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int i) {
+                          final joinedRoom = joinedRooms[i];
+                          return FutureBuilder<Event?>(
+                            future: getLastVisibleEvent(joinedRoom),
+                            builder: (context, snapshot) {
+                              final lastEvent = snapshot.data;
+
+                              return ChatListItem(
+                                room,
+                                lastEvent: lastEvent,
+                                filter: filter,
+                                onTap: () => widget.onChatTab(joinedRoom),
+                                onLongPress: (context) => widget.onChatContext(
+                                  joinedRoom,
+                                  context,
+                                ),
+                                activeChat: widget.activeChat == joinedRoom.id,
+                              );
+                            },
+                          );
+                        },
+                        childCount: joinedRooms.length,
+                      ),
                     ),
                     SliverList.builder(
                       itemCount: _discoveredChildren.length + 2,

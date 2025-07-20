@@ -1,12 +1,7 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
-
 import 'package:badges/badges.dart';
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/pages/chat/chat.dart';
@@ -24,6 +19,10 @@ import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:fluffychat/widgets/mxc_image.dart';
 import 'package:fluffychat/widgets/unread_rooms_badge.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:matrix/matrix.dart';
+
 import '../../utils/stream_extension.dart';
 import 'chat_emoji_picker.dart';
 import 'chat_input_row.dart';
@@ -40,12 +39,12 @@ class ChatView extends StatelessWidget {
       return [
         if (controller.canEditSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.edit_outlined),
+            icon: Image.asset('assets/icons/hp-pencil.png', scale: 8),
             tooltip: L10n.of(context).edit,
             onPressed: controller.editSelectedEventAction,
           ),
         IconButton(
-          icon: const Icon(Icons.copy_outlined),
+          icon: Image.asset('assets/icons/hp-copy.png', scale: 8),
           tooltip: L10n.of(context).copy,
           onPressed: controller.copyEventsAction,
         ),
@@ -60,62 +59,69 @@ class ChatView extends StatelessWidget {
           ),
         if (controller.canPinSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.push_pin_outlined),
+            icon: Image.asset('assets/icons/hp-pin.png', scale: 8),
             onPressed: controller.pinEvent,
             tooltip: L10n.of(context).pinMessage,
           ),
         if (controller.canRedactSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.delete_outlined),
+            icon: Image.asset('assets/icons/hp-bin.png', scale: 8),
             tooltip: L10n.of(context).redactMessage,
             onPressed: controller.redactEventsAction,
           ),
         if (controller.selectedEvents.length == 1)
-          PopupMenuButton<_EventContextAction>(
-            onSelected: (action) {
-              switch (action) {
-                case _EventContextAction.info:
-                  controller.showEventInfo();
-                  controller.clearSelectedEvents();
-                  break;
-                case _EventContextAction.report:
-                  controller.reportEventAction();
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _EventContextAction.info,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.info_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).messageInfo),
-                  ],
-                ),
-              ),
-              if (controller.selectedEvents.single.status.isSent)
-                PopupMenuItem(
-                  value: _EventContextAction.report,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.shield_outlined,
-                        color: Colors.red,
+          AppConfig.isTeacher
+              ? PopupMenuButton<_EventContextAction>(
+                  onSelected: (action) {
+                    switch (action) {
+                      case _EventContextAction.info:
+                        controller.showEventInfo();
+                        controller.clearSelectedEvents();
+                        break;
+                      case _EventContextAction.report:
+                        controller.reportEventAction();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _EventContextAction.info,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outlined),
+                          const SizedBox(width: 12),
+                          Text(L10n.of(context).messageInfo),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(L10n.of(context).reportMessage),
-                    ],
-                  ),
+                    ),
+                    if (controller.selectedEvents.single.status.isSent)
+                      PopupMenuItem(
+                        value: _EventContextAction.report,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.shield_outlined,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(L10n.of(context).reportMessage),
+                          ],
+                        ),
+                      ),
+                  ],
+                )
+              : IconButton(
+                  icon: Image.asset('assets/icons/hp-warning.png', scale: 8),
+                  onPressed: () => controller.reportEventAction(),
+                  tooltip: L10n.of(context).pinMessage,
                 ),
-            ],
-          ),
       ];
     } else if (!controller.room.isArchived) {
       return [
         if (AppConfig.experimentalVoip &&
+            AppConfig.isTeacher == true &&
             Matrix.of(context).voipPlugin != null &&
             controller.room.isDirectChat)
           IconButton(
@@ -123,7 +129,7 @@ class ChatView extends StatelessWidget {
             icon: const Icon(Icons.call_outlined),
             tooltip: L10n.of(context).placeCall,
           ),
-        EncryptionButton(controller.room),
+        if (AppConfig.isTeacher) EncryptionButton(controller.room),
         ChatSettingsPopupMenu(controller.room, true),
       ];
     }
@@ -179,28 +185,31 @@ class ChatView extends StatelessWidget {
                 actionsIconTheme: IconThemeData(
                   color: controller.selectedEvents.isEmpty
                       ? null
-                      : theme.colorScheme.primary,
+                      : theme.colorScheme.tertiary,
                 ),
+                automaticallyImplyLeading: false,
                 leading: controller.selectMode
                     ? IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: controller.clearSelectedEvents,
                         tooltip: L10n.of(context).close,
-                        color: theme.colorScheme.primary,
+                        color: theme.colorScheme.tertiary,
                       )
-                    : StreamBuilder<Object>(
-                        stream: Matrix.of(context)
-                            .client
-                            .onSync
-                            .stream
-                            .where((syncUpdate) => syncUpdate.hasRoomUpdate),
-                        builder: (context, _) => UnreadRoomsBadge(
-                          filter: (r) => r.id != controller.roomId,
-                          badgePosition: BadgePosition.topEnd(end: 8, top: 4),
-                          child: const Center(child: BackButton()),
-                        ),
-                      ),
-                titleSpacing: 0,
+                    : FluffyThemes.isColumnMode(context)
+                        ? null
+                        : StreamBuilder<Object>(
+                            stream:
+                                Matrix.of(context).client.onSync.stream.where(
+                                      (syncUpdate) => syncUpdate.hasRoomUpdate,
+                                    ),
+                            builder: (context, _) => UnreadRoomsBadge(
+                              filter: (r) => r.id != controller.roomId,
+                              badgePosition:
+                                  BadgePosition.topEnd(end: 8, top: 4),
+                              child: const Center(child: BackButton()),
+                            ),
+                          ),
+                titleSpacing: FluffyThemes.isColumnMode(context) ? 24 : 0,
                 title: ChatAppBarTitle(controller),
                 actions: _appBarActions(context),
                 bottom: PreferredSize(

@@ -14,7 +14,8 @@ abstract class AppConfig {
   static Color? colorSchemeSeed = primaryColor;
   static const double messageFontSize = 16.0;
   static const bool allowOtherHomeservers = true;
-  static const bool enableRegistration = true;
+  static const bool enableRegistration = false;
+  static bool isTeacher = false;
   static const Color primaryColor = Color(0xFF5625BA);
   static const Color primaryColorLight = Color(0xFFCCBDEA);
   static const Color secondaryColor = Color(0xFF41a2bc);
@@ -44,16 +45,16 @@ abstract class AppConfig {
     path: '/krille-chan/fluffychat/issues/new',
   );
   static bool renderHtml = true;
-  static bool hideRedactedEvents = false;
+  static bool hideRedactedEvents = true;
   static bool hideUnknownEvents = true;
   static bool hideUnimportantStateEvents = true;
-  static bool separateChatTypes = false;
+  static bool separateChatTypes = true;
   static bool autoplayImages = true;
   static bool sendTypingNotifications = true;
   static bool sendPublicReadReceipts = true;
   static bool swipeRightToLeftToReply = true;
   static bool? sendOnEnter;
-  static bool showPresences = true;
+  static bool showPresences = false;
   static bool experimentalVoip = false;
   static const bool hideTypingUsernames = false;
   static const bool hideAllStateEvents = false;

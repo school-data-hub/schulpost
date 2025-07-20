@@ -8,10 +8,12 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  adaptive_dialog: ^2.4.0
   animations: ^2.0.11
   archive: ^3.4.10
   async: ^2.11.0
   badges: ^3.1.2
+  barcode_scan2: ^4.4.0
   blurhash_dart: ^1.2.1
   callkeep: ^0.3.2
   chewie: ^1.8.1
@@ -24,6 +26,7 @@ dependencies:
   dynamic_color: ^1.7.0
   emoji_picker_flutter: ^3.1.0
   emojis: ^0.9.9
+  encrypt: ^5.0.3
   fcm_shared_isolate: ^0.1.0
   file_picker: ^8.1.2
   file_selector: ^1.0.3
@@ -60,7 +63,7 @@ dependencies:
   just_audio: ^0.9.39
   latlong2: ^0.9.1
   linkify: ^5.0.0
-  matrix: ^0.37.0
+  matrix: ^0.38.0
   mime: ^1.0.6
   native_imaging: ^0.1.1
   opus_caf_converter_dart: ^1.0.1
@@ -73,6 +76,7 @@ dependencies:
   provider: ^6.0.2
   punycode: ^1.0.0
   qr_code_scanner: ^1.0.1
+  qr_flutter: ^4.1.0
   qr_image: ^1.0.0
   receive_sharing_intent: ^1.8.1
   record: ^5.1.2
@@ -123,6 +127,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/icons/
     - assets/sounds/
     - assets/js/
     - assets/js/package/
@@ -132,6 +137,8 @@ flutter:
     - family: Ubuntu
       fonts:
         - asset: fonts/Ubuntu/Ubuntu-Regular.ttf
+        - asset: fonts/Ubuntu/Ubuntu-Medium.ttf
+          weight: 500
         - asset: fonts/Ubuntu/Ubuntu-Bold.ttf
           weight: 600
         - asset: fonts/Ubuntu/Ubuntu-Italic.ttf

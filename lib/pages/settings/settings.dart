@@ -1,18 +1,19 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 import 'package:collection/collection.dart';
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:matrix/matrix.dart';
-
+import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/utils/file_selector.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_modal_action_popup.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_ok_cancel_alert_dialog.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_text_input_dialog.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:matrix/matrix.dart';
+
 import '../../widgets/matrix.dart';
 import '../bootstrap/bootstrap_dialog.dart';
 import 'settings_view.dart';
@@ -32,6 +33,20 @@ class SettingsController extends State<Settings> {
         profileUpdated = true;
         profileFuture = null;
       });
+
+  void changeTeacherStatus() async {
+    final bool newStatus;
+    if (AppConfig.isTeacher == true) {
+      newStatus = false;
+    } else {
+      newStatus = true;
+    }
+    await Matrix.of(context).store.setBool(SettingKeys.isTeacher, newStatus);
+    setState(() {
+      AppConfig.isTeacher = newStatus;
+      debugPrint('Teacher status changed to $newStatus');
+    });
+  }
 
   void setDisplaynameAction() async {
     final profile = await profileFuture;

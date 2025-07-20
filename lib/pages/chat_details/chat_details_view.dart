@@ -1,10 +1,4 @@
-import 'package:flutter/material.dart';
-
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:go_router/go_router.dart';
-import 'package:matrix/matrix.dart';
-
+import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/pages/chat_details/chat_details.dart';
 import 'package:fluffychat/pages/chat_details/participant_list_item.dart';
 import 'package:fluffychat/utils/fluffy_share.dart';
@@ -13,6 +7,12 @@ import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/chat_settings_popup_menu.dart';
 import 'package:fluffychat/widgets/layouts/max_width_body.dart';
 import 'package:fluffychat/widgets/matrix.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:go_router/go_router.dart';
+import 'package:matrix/matrix.dart';
+
 import '../../utils/url_launcher.dart';
 import '../../widgets/qr_code_viewer.dart';
 
@@ -57,7 +57,7 @@ class ChatDetailsView extends StatelessWidget {
                 const Center(child: BackButton()),
             elevation: theme.appBarTheme.elevation,
             actions: <Widget>[
-              if (room.canonicalAlias.isNotEmpty) ...[
+              if (room.canonicalAlias.isNotEmpty && AppConfig.isTeacher) ...[
                 IconButton(
                   tooltip: L10n.of(context).share,
                   icon: const Icon(Icons.qr_code_rounded),
@@ -160,11 +160,16 @@ class ChatDetailsView extends StatelessWidget {
                                     ),
                                   ),
                                   TextButton.icon(
-                                    onPressed: () => room.isDirectChat
-                                        ? null
-                                        : context.push(
-                                            '/rooms/${controller.roomId}/details/members',
-                                          ),
+                                    onPressed: () {
+                                      if (room.isDirectChat) {
+                                        return;
+                                      }
+                                      if (controller.powerlevel >= 30) {
+                                        context.push(
+                                          '/rooms/${controller.roomId}/details/members',
+                                        );
+                                      }
+                                    },
                                     icon: const Icon(
                                       Icons.group_outlined,
                                       size: 14,
@@ -189,7 +194,8 @@ class ChatDetailsView extends StatelessWidget {
                           ],
                         ),
                         Divider(color: theme.dividerColor),
-                        if (!room.canChangeStateEvent(EventTypes.RoomTopic))
+                        if (!room.canChangeStateEvent(EventTypes.RoomTopic) &&
+                            !room.isDirectChat)
                           ListTile(
                             title: Text(
                               L10n.of(context).chatDescription,
@@ -200,63 +206,69 @@ class ChatDetailsView extends StatelessWidget {
                             ),
                           )
                         else
+                          !room.isDirectChat
+                              ? Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: TextButton.icon(
+                                    onPressed: controller.setTopicAction,
+                                    label: Text(
+                                        L10n.of(context).setChatDescription),
+                                    icon: const Icon(Icons.edit_outlined),
+                                    style: TextButton.styleFrom(
+                                      iconColor: theme
+                                          .colorScheme.onSecondaryContainer,
+                                      backgroundColor:
+                                          theme.colorScheme.secondaryContainer,
+                                      foregroundColor: theme
+                                          .colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                        if (!room.isDirectChat)
                           Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: TextButton.icon(
-                              onPressed: controller.setTopicAction,
-                              label: Text(L10n.of(context).setChatDescription),
-                              icon: const Icon(Icons.edit_outlined),
-                              style: TextButton.styleFrom(
-                                iconColor:
-                                    theme.colorScheme.onSecondaryContainer,
-                                backgroundColor:
-                                    theme.colorScheme.secondaryContainer,
-                                foregroundColor:
-                                    theme.colorScheme.onSecondaryContainer,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: SelectableLinkify(
+                              text: room.topic.isEmpty
+                                  ? L10n.of(context).noChatDescriptionYet
+                                  : room.topic,
+                              options: const LinkifyOptions(humanize: false),
+                              linkStyle: const TextStyle(
+                                color: Colors.blueAccent,
+                                decorationColor: Colors.blueAccent,
                               ),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontStyle: room.topic.isEmpty
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                                color: theme.textTheme.bodyMedium!.color,
+                                decorationColor:
+                                    theme.textTheme.bodyMedium!.color,
+                              ),
+                              onOpen: (url) =>
+                                  UrlLauncher(context, url.url).launchUrl(),
                             ),
                           ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                          ),
-                          child: SelectableLinkify(
-                            text: room.topic.isEmpty
-                                ? L10n.of(context).noChatDescriptionYet
-                                : room.topic,
-                            options: const LinkifyOptions(humanize: false),
-                            linkStyle: const TextStyle(
-                              color: Colors.blueAccent,
-                              decorationColor: Colors.blueAccent,
-                            ),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontStyle: room.topic.isEmpty
-                                  ? FontStyle.italic
-                                  : FontStyle.normal,
-                              color: theme.textTheme.bodyMedium!.color,
-                              decorationColor:
-                                  theme.textTheme.bodyMedium!.color,
-                            ),
-                            onOpen: (url) =>
-                                UrlLauncher(context, url.url).launchUrl(),
-                          ),
-                        ),
                         const SizedBox(height: 16),
                         Divider(color: theme.dividerColor),
-                        ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: theme.scaffoldBackgroundColor,
-                            foregroundColor: iconColor,
-                            child: const Icon(
-                              Icons.insert_emoticon_outlined,
+                        if (AppConfig.isTeacher)
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: theme.scaffoldBackgroundColor,
+                              foregroundColor: iconColor,
+                              child: const Icon(
+                                Icons.insert_emoticon_outlined,
+                              ),
                             ),
+                            title:
+                                Text(L10n.of(context).customEmojisAndStickers),
+                            subtitle: Text(L10n.of(context).setCustomEmotes),
+                            onTap: controller.goToEmoteSettings,
+                            trailing: const Icon(Icons.chevron_right_outlined),
                           ),
-                          title: Text(L10n.of(context).customEmojisAndStickers),
-                          subtitle: Text(L10n.of(context).setCustomEmotes),
-                          onTap: controller.goToEmoteSettings,
-                          trailing: const Icon(Icons.chevron_right_outlined),
-                        ),
                         if (!room.isDirectChat)
                           ListTile(
                             leading: CircleAvatar(

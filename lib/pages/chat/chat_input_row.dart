@@ -1,14 +1,13 @@
-import 'package:flutter/material.dart';
-
 import 'package:animations/animations.dart';
-import 'package:flutter_gen/gen_l10n/l10n.dart';
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/utils/other_party_can_receive.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/matrix.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:matrix/matrix.dart';
+
 import '../../config/themes.dart';
 import 'chat.dart';
 import 'input_bar.dart';
@@ -159,7 +158,7 @@ class ChatInputRow extends StatelessWidget {
                           contentPadding: const EdgeInsets.all(0),
                         ),
                       ),
-                    if (PlatformInfos.isMobile)
+                    if (PlatformInfos.isMobile && AppConfig.isTeacher)
                       PopupMenuItem<String>(
                         value: 'camera-video',
                         child: ListTile(
@@ -172,19 +171,19 @@ class ChatInputRow extends StatelessWidget {
                           contentPadding: const EdgeInsets.all(0),
                         ),
                       ),
-                    if (PlatformInfos.isMobile)
-                      PopupMenuItem<String>(
-                        value: 'location',
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.brown,
-                            foregroundColor: Colors.white,
-                            child: Icon(Icons.gps_fixed_outlined),
-                          ),
-                          title: Text(L10n.of(context).shareLocation),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
+                    // if (PlatformInfos.isMobile)
+                    //   PopupMenuItem<String>(
+                    //     value: 'location',
+                    //     child: ListTile(
+                    //       leading: const CircleAvatar(
+                    //         backgroundColor: Colors.brown,
+                    //         foregroundColor: Colors.white,
+                    //         child: Icon(Icons.gps_fixed_outlined),
+                    //       ),
+                    //       title: Text(L10n.of(context).shareLocation),
+                    //       contentPadding: const EdgeInsets.all(0),
+                    //     ),
+                    //   ),
                   ],
                 ),
               ),
@@ -275,8 +274,8 @@ class ChatInputRow extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(height),
                         ),
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor: theme.bubbleColor,
+                        foregroundColor: theme.onBubbleColor,
                         child: const Icon(Icons.mic_none_outlined),
                       )
                     : FloatingActionButton.small(
@@ -287,8 +286,8 @@ class ChatInputRow extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(height),
                         ),
-                        backgroundColor: theme.colorScheme.onPrimaryContainer,
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor: theme.bubbleColor,
+                        foregroundColor: theme.onBubbleColor,
                         child: const Icon(Icons.send_outlined),
                       ),
               ),

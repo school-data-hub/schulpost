@@ -19,8 +19,7 @@ extension VisibleInGuiExtension on List<Event> {
           i--;
           continue;
         }
-        if (event.type == EventTypes.RoomMember &&
-            event.roomMemberChangeType == RoomMemberChangeType.acceptInvite) {
+        if (event.type == EventTypes.RoomMember) {
           i--;
           continue;
         }
@@ -46,15 +45,28 @@ extension IsStateExtension on Event {
       (!AppConfig.hideRedactedEvents || !redacted) &&
       // if we enabled to hide all unknown events, don't show those
       (!AppConfig.hideUnknownEvents || isEventTypeKnown) &&
+
+      // hide unimportant state events
+      (!isState || !importantStateEvents.contains(type)) &&
       // remove state events that we don't want to render
       (isState || !AppConfig.hideAllStateEvents) &&
       // hide simple join/leave member events in public rooms
-      (!AppConfig.hideUnimportantStateEvents ||
-          type != EventTypes.RoomMember ||
-          room.joinRules != JoinRules.public ||
+      (AppConfig.hideUnimportantStateEvents && type != EventTypes.RoomMember ||
           content.tryGet<String>('membership') == 'ban' ||
           stateKey != senderId);
 
+  static const Set<String> importantStateEvents = {
+    EventTypes.Encryption,
+    EventTypes.RoomCreate,
+    EventTypes.RoomMember,
+    EventTypes.RoomPowerLevels,
+    EventTypes.RoomAvatar,
+    EventTypes.RoomName,
+    EventTypes.RoomTopic,
+    EventTypes.GuestAccess,
+    //EventTypes.RoomTombstone,
+    //EventTypes.CallInvite,
+  };
   bool get isState => !{
         EventTypes.Message,
         EventTypes.Sticker,

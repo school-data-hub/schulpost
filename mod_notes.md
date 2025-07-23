@@ -1,0 +1,1 @@
+file_picker not showing in GeneratedPluginRegistrant.swift?

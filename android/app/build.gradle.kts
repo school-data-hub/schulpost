@@ -17,7 +17,7 @@ dependencies {
 }
 
 android {
-    namespace = "chat.fluffy.fluffychat"
+    namespace = "de.hermannschule.hermannpost"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -53,7 +53,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "chat.fluffy.fluffychat"
+        applicationId = "de.hermannschule.hermannpost"
         minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

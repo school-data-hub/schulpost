@@ -1,4 +1,4 @@
-package chat.fluffy.fluffychat
+package de.hermannschule.hermannpost
 
 import com.famedly.fcm_shared_isolate.FcmSharedIsolateService
 

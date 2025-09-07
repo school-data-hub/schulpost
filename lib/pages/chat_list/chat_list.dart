@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluffychat/config/themes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,6 +100,51 @@ class ChatListController extends State<ChatList>
       ? ActiveFilter.messages
       : ActiveFilter.allChats;
 
+  bool get displayNavigationBar => true;
+  // !FluffyThemes.isColumnMode(context) &&
+  // (spaces.isNotEmpty || AppConfig.separateChatTypes);
+
+  int get selectedIndex {
+    switch (activeFilter) {
+      case ActiveFilter.allChats:
+        return 0;
+      case ActiveFilter.groups:
+        return 1;
+      case ActiveFilter.settings:
+        return AppConfig.separateChatTypes ? 2 : 1;
+      default:
+        return 0;
+    }
+  }
+
+  ActiveFilter getActiveFilterByDestination(int? i) {
+    switch (i) {
+      case 2:
+        return ActiveFilter.settings;
+      case 1:
+        return ActiveFilter.groups;
+      case 0:
+      default:
+        return ActiveFilter.allChats;
+    }
+  }
+
+  void onDestinationSelected(int? i) {
+    if (i == 2) {
+      setState(() {
+        activeFilter = ActiveFilter.settings;
+      });
+    } else if (i == 1) {
+      setState(() {
+        activeFilter = ActiveFilter.groups;
+      });
+    } else {
+      setState(() {
+        activeFilter = getActiveFilterByDestination(i);
+      });
+    }
+  }
+
   String? _activeSpaceId;
   String? get activeSpaceId => _activeSpaceId;
 
@@ -107,6 +153,7 @@ class ChatListController extends State<ChatList>
 
     setState(() {
       _activeSpaceId = spaceId;
+      activeFilter = ActiveFilter.settings;
     });
   }
 
@@ -214,6 +261,31 @@ class ChatListController extends State<ChatList>
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
 
+  void getPublicRooms() async {
+    final client = Matrix.of(context).client;
+
+    QueryPublicRoomsResponse? allPublicRooms;
+    try {
+      allPublicRooms = await client.queryPublicRooms(
+        server: searchServer,
+        //filter: PublicRoomQueryFilter(genericSearchTerm: searchController.text),
+        limit: 40,
+      );
+    } catch (e, s) {
+      Logs().w('Room fetching has crashed', e, s);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Room fetching has crashed ${e.toLocalizedString(context)}',
+          ),
+        ),
+      );
+    }
+    setState(() {
+      roomSearchResult = allPublicRooms;
+    });
+  }
+
   void _search() async {
     final client = Matrix.of(context).client;
     if (!isSearching) {
@@ -221,11 +293,11 @@ class ChatListController extends State<ChatList>
         isSearching = true;
       });
     }
-    SearchUserDirectoryResponse? userSearchResult;
-    QueryPublicRoomsResponse? roomSearchResult;
+    //  SearchUserDirectoryResponse? userSearchResult;
+    QueryPublicRoomsResponse? allRoomsSearchResult;
     final searchQuery = searchController.text.trim();
     try {
-      roomSearchResult = await client.queryPublicRooms(
+      allRoomsSearchResult = await client.queryPublicRooms(
         server: searchServer,
         filter: PublicRoomQueryFilter(genericSearchTerm: searchQuery),
         limit: 20,
@@ -233,13 +305,13 @@ class ChatListController extends State<ChatList>
 
       if (searchQuery.isValidMatrixId &&
           searchQuery.sigil == '#' &&
-          roomSearchResult.chunk
+          allRoomsSearchResult.chunk
                   .any((room) => room.canonicalAlias == searchQuery) ==
               false) {
         final response = await client.getRoomIdByAlias(searchQuery);
         final roomId = response.roomId;
         if (roomId != null) {
-          roomSearchResult.chunk.add(
+          allRoomsSearchResult.chunk.add(
             PublicRoomsChunk(
               name: searchQuery,
               guestCanJoin: false,
@@ -251,10 +323,10 @@ class ChatListController extends State<ChatList>
           );
         }
       }
-      userSearchResult = await client.searchUserDirectory(
-        searchController.text,
-        limit: 20,
-      );
+      // userSearchResult = await client.searchUserDirectory(
+      //   searchController.text,
+      //   limit: 20,
+      // );
     } catch (e, s) {
       Logs().w('Searching has crashed', e, s);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -268,8 +340,9 @@ class ChatListController extends State<ChatList>
     if (!isSearchMode) return;
     setState(() {
       isSearching = false;
-      this.roomSearchResult = roomSearchResult;
-      this.userSearchResult = userSearchResult;
+      //  this.roomSearchResult = roomSearchResult;
+      // this.userSearchResult = userSearchResult;
+      roomSearchResult = allRoomsSearchResult;
     });
   }
 

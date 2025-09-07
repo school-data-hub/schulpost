@@ -16,6 +16,45 @@ class ChatListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<NavigationDestination> getNavigationDestinations(
+        BuildContext context) {
+      return [
+        NavigationDestination(
+          icon: Image.asset(
+            'assets/hp_icon_border.png',
+            scale: 8,
+          ),
+          selectedIcon: Image.asset(
+            'assets/hp_icon_border.png',
+            scale: 5,
+          ),
+          label: L10n.of(context).messages,
+        ),
+        NavigationDestination(
+          icon: Image.asset(
+            'assets/hp-discover.png',
+            scale: 6,
+          ),
+          selectedIcon: Image.asset(
+            'assets/hp-discover.png',
+            scale: 5,
+          ),
+          label: L10n.of(context).discover,
+        ),
+        NavigationDestination(
+          icon: Image.asset(
+            'assets/hp-settings.png',
+            scale: 7,
+          ),
+          selectedIcon: Image.asset(
+            'assets/hp-settings.png',
+            scale: 6,
+          ),
+          label: L10n.of(context).settings,
+        ),
+      ];
+    }
+
     return PopScope(
       canPop: !controller.isSearchMode && controller.activeSpaceId == null,
       onPopInvokedWithResult: (pop, _) {
@@ -49,13 +88,6 @@ class ChatListView extends StatelessWidget {
               excludeFromSemantics: true,
               behavior: HitTestBehavior.translucent,
               child: Scaffold(
-                // TODO: Check error on logout
-//                 The following StateError was thrown building HomeserverPickerView(dirty, dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#f00db]]):
-// Bad state: No element
-
-// The relevant error-causing widget was:
-//     HomeserverPickerView HomeserverPickerView:file:///Users/dominguis/code/schulpost/lib/pages/homeserver_picker/homeserver_picker.dart:196:41
-
                 body: ChatListViewBody(controller),
                 floatingActionButton: !controller.isSearchMode &&
                         controller.activeSpaceId == null
@@ -68,6 +100,20 @@ class ChatListView extends StatelessWidget {
                         ),
                       )
                     : const SizedBox.shrink(),
+                bottomNavigationBar: controller.displayNavigationBar == true
+                    ? NavigationBar(
+                        height: 70,
+                        labelBehavior:
+                            NavigationDestinationLabelBehavior.alwaysShow,
+                        indicatorColor: Colors.transparent,
+                        shadowColor: Theme.of(context).colorScheme.onSurface,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        surfaceTintColor: Theme.of(context).colorScheme.surface,
+                        selectedIndex: controller.selectedIndex,
+                        onDestinationSelected: controller.onDestinationSelected,
+                        destinations: getNavigationDestinations(context),
+                      )
+                    : null,
               ),
             ),
           ),

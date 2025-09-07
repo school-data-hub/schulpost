@@ -95,6 +95,7 @@ dependencies:
   watch_it: ^1.7.0
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.0.1
+  future_loading_dialog: ^0.3.0
 
 
 dev_dependencies:

@@ -180,6 +180,17 @@ class ChatDetailsView extends StatelessWidget {
                                   //     style: const TextStyle(fontSize: 18),
                                   //   ),
                                   // ),
+                                  Text(
+                                    room.isDirectChat
+                                        ? L10n.of(context).directChat
+                                        : displayname,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   TextButton.icon(
                                     onPressed: () => room.isDirectChat
                                         ? null
@@ -412,26 +423,34 @@ class ChatDetailsView extends StatelessWidget {
                           ),
                       ],
                     )
-                  : i < members.length + 1
-                      ? ParticipantListItem(members[i - 1])
-                      : ListTile(
-                          title: Text(
-                            L10n.of(context).loadCountMoreParticipants(
-                              (actualMembersCount - members.length),
-                            ),
-                          ),
-                          leading: CircleAvatar(
-                            backgroundColor: theme.scaffoldBackgroundColor,
-                            child: const Icon(
-                              Icons.group_outlined,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          onTap: () => context.push(
-                            '/rooms/${controller.roomId!}/details/members',
-                          ),
-                          trailing: const Icon(Icons.chevron_right_outlined),
-                        ),
+                  : AppConfig.isTeacher == true &&
+                          controller.powerlevel >= 10 &&
+                          i < controller.filteredMembers!.length + 1
+                      ? ParticipantListItem(
+                          controller.filteredMembers![i - 1],
+                        )
+                      : AppConfig.isTeacher == true &&
+                              controller.powerlevel >= 30
+                          ? ListTile(
+                              title: Text(
+                                L10n.of(context).loadCountMoreParticipants(
+                                  (actualMembersCount - members.length),
+                                ),
+                              ),
+                              leading: CircleAvatar(
+                                backgroundColor: theme.scaffoldBackgroundColor,
+                                child: const Icon(
+                                  Icons.group_outlined,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              onTap: () => context.push(
+                                '/rooms/${controller.roomId!}/details/members',
+                              ),
+                              trailing:
+                                  const Icon(Icons.chevron_right_outlined),
+                            )
+                          : const SizedBox.shrink(),
             ),
           ),
         );

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluffychat/pages/login/qr_login.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -81,6 +82,15 @@ abstract class AppRoutes {
             context,
             state,
             Login(client: state.extra as Client),
+          ),
+          redirect: loggedInRedirect,
+        ),
+        GoRoute(
+          path: 'qrLogin',
+          pageBuilder: (context, state) => defaultPageBuilder(
+            context,
+            state,
+            const QrLoginScreen(),
           ),
           redirect: loggedInRedirect,
         ),

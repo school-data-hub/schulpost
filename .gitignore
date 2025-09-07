@@ -48,6 +48,7 @@ docs/tailwind.css
 **/android/app/.cxx
 android/key.jks
 android/keys.json
+android/app/google-services.json
 android/Gemfile.lock
 lib/l10n/*.dart
 ios/Flutter/.last_build_id

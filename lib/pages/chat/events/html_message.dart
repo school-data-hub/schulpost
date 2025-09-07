@@ -479,11 +479,27 @@ class HtmlMessage extends StatelessWidget {
             'strikethrough' =>
               const TextStyle(decoration: TextDecoration.lineThrough),
             'u' => const TextStyle(decoration: TextDecoration.underline),
-            'h1' => TextStyle(fontSize: fontSize * 1.6, height: 2),
-            'h2' => TextStyle(fontSize: fontSize * 1.5, height: 2),
-            'h3' => TextStyle(fontSize: fontSize * 1.4, height: 2),
-            'h4' => TextStyle(fontSize: fontSize * 1.3, height: 1.75),
-            'h5' => TextStyle(fontSize: fontSize * 1.2, height: 1.75),
+            'h1' => TextStyle(
+                fontSize: fontSize * 2.0,
+                height: 2,
+                fontWeight: FontWeight.w600,
+              ),
+            'h2' => TextStyle(
+                fontSize: fontSize * 1.75,
+                height: 2,
+                fontWeight: FontWeight.w600,
+              ),
+            'h3' => TextStyle(
+                fontSize: fontSize * 1.5,
+                height: 2,
+                fontWeight: FontWeight.w600,
+              ),
+            'h4' => TextStyle(
+                fontSize: fontSize * 1.25,
+                height: 1.75,
+                fontWeight: FontWeight.w600,
+              ),
+            'h5' => TextStyle(fontSize: fontSize * 1.25, height: 1.75),
             'h6' => TextStyle(fontSize: fontSize * 1.1, height: 1.5),
             'span' => TextStyle(
                 color: node.attributes['color']?.hexToColor ??
@@ -542,28 +558,50 @@ class MatrixPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      splashColor: Colors.transparent,
       onTap: UrlLauncher(outerContext, uri).launchUrl,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Avatar(
-            mxContent: avatar,
-            name: name,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            name,
-            style: TextStyle(
-              color: color,
-              decorationColor: color,
-              decoration: TextDecoration.underline,
-              fontSize: fontSize,
-              height: 1.25,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          top: 8.0,
+          bottom: 8.0,
+        ),
+        child: Material(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(outerContext).colorScheme.onPrimaryContainer,
+              width: 0.5,
             ),
           ),
-        ],
+          color: Theme.of(outerContext).colorScheme.primaryContainer,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 8.0,
+              top: 10,
+              bottom: 10,
+              right: 20,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Avatar(
+                  mxContent: avatar,
+                  name: name,
+                  size: 50,
+                ),
+                const SizedBox(width: 6, height: 50),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color:
+                        Theme.of(outerContext).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -11,8 +14,9 @@ import 'package:fluffychat/widgets/layouts/login_scaffold.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import '../../config/themes.dart';
 import 'homeserver_picker.dart';
+import 'package:watch_it/watch_it.dart';
 
-class HomeserverPickerView extends StatelessWidget {
+class HomeserverPickerView extends WatchingWidget {
   final HomeserverPickerController controller;
 
   const HomeserverPickerView(
@@ -22,60 +26,66 @@ class HomeserverPickerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final versionSnapshot = createOnceAsync<String>(
+      () async {
+        final packageInfo = await PackageInfo.fromPlatform();
+        return packageInfo.version;
+      },
+      initialValue: '...',
+    );
+
     final theme = Theme.of(context);
 
     return LoginScaffold(
-      enforceMobileMode:
-          Matrix.of(context).widget.clients.any((client) => client.isLogged()),
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          controller.widget.addMultiAccount
-              ? L10n.of(context).addAccount
-              : L10n.of(context).login,
-        ),
-        actions: [
-          PopupMenuButton<MoreLoginActions>(
-            useRootNavigator: true,
-            onSelected: controller.onMoreAction,
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: MoreLoginActions.importBackup,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.import_export_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).hydrate),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MoreLoginActions.privacy,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.privacy_tip_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).privacy),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: MoreLoginActions.about,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.info_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).about),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      enforceMobileMode: Matrix.of(context).client.isLogged(),
+      // appBar: AppBar(
+      //   centerTitle: true,
+      //   title: Text(
+      //     controller.widget.addMultiAccount
+      //         ? L10n.of(context).addAccount
+      //         : L10n.of(context).login,
+      //   ),
+      //   actions: [
+      //     PopupMenuButton<MoreLoginActions>(
+      //       onSelected: controller.onMoreAction,
+      //       itemBuilder: (_) => [
+      //         PopupMenuItem(
+      //           value: MoreLoginActions.passwordLogin,
+      //           child: Row(
+      //             mainAxisSize: MainAxisSize.min,
+      //             children: [
+      //               const Icon(Icons.login_outlined),
+      //               const SizedBox(width: 12),
+      //               Text(L10n.of(context).loginWithMatrixId),
+      //             ],
+      //           ),
+      //         ),
+      //         PopupMenuItem(
+      //           value: MoreLoginActions.privacy,
+      //           child: Row(
+      //             mainAxisSize: MainAxisSize.min,
+      //             children: [
+      //               const Icon(Icons.privacy_tip_outlined),
+      //               const SizedBox(width: 12),
+      //               Text(L10n.of(context).privacy),
+      //             ],
+      //           ),
+      //         ),
+      //         PopupMenuItem(
+      //           value: MoreLoginActions.about,
+      //           child: Row(
+      //             mainAxisSize: MainAxisSize.min,
+      //             children: [
+      //               const Icon(Icons.info_outlined),
+      //               const SizedBox(width: 12),
+      //               Text(L10n.of(context).about),
+      //             ],
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ],
+      // ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -87,6 +97,7 @@ class HomeserverPickerView extends StatelessWidget {
                     // display a prominent banner to import session for TOR browser
                     // users. This feature is just some UX sugar as TOR users are
                     // usually forced to logout as TOR browser is non-persistent
+                    const Padding(padding: EdgeInsets.only(top: 16.0)),
                     AnimatedContainer(
                       height: controller.isTorBrowser ? 64 : 0,
                       duration: FluffyThemes.animationDuration,
@@ -111,132 +122,172 @@ class HomeserverPickerView extends StatelessWidget {
                     Container(
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Hero(
-                        tag: 'info-logo',
-                        child: Image.asset(
-                          './assets/banner_transparent.png',
-                          fit: BoxFit.fitWidth,
-                        ),
+                      child: Image.asset(
+                        'assets/hermannpost-banner.png',
+                        fit: BoxFit.fitWidth,
                       ),
                     ),
+                    Text('Version ${versionSnapshot.data}'),
                     const SizedBox(height: 32),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    //   child: SelectableLinkify(
+                    //     text: L10n.of(context).welcomeText,
+                    //     style: TextStyle(
+                    //       color: theme.colorScheme.onSecondaryContainer,
+                    //       fontWeight: FontWeight.w500,
+                    //     ),
+                    //     textAlign: TextAlign.center,
+                    //     linkStyle: TextStyle(
+                    //       color: theme.colorScheme.secondary,
+                    //       decorationColor: theme.colorScheme.secondary,
+                    //     ),
+                    //     onOpen: (link) => launchUrlString(link.url),
+                    //   ),
+                    // ),
+                    //  const Spacer(),
+                    // Padding(
+                    //   padding: const EdgeInsets.all(32.0),
+                    //   child: Column(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    //     children: [
+                    //       TextField(
+                    //         onChanged:
+                    //             controller.tryCheckHomeserverActionWithCooldown,
+                    //         onSubmitted: controller.onSubmitted,
+                    //         onTap:
+                    //             controller.tryCheckHomeserverActionWithCooldown,
+                    //         controller: controller.homeserverController,
+                    //         autocorrect: false,
+                    //         keyboardType: TextInputType.url,
+                    //         decoration: InputDecoration(
+                    //           prefixIcon: controller.isLoading
+                    //               ? Container(
+                    //                   width: 16,
+                    //                   height: 16,
+                    //                   alignment: Alignment.center,
+                    //                   child: const SizedBox(
+                    //                     width: 16,
+                    //                     height: 16,
+                    //                     child:
+                    //                         CircularProgressIndicator.adaptive(
+                    //                       strokeWidth: 2,
+                    //                     ),
+                    //                   ),
+                    //                 )
+                    //               : const Icon(Icons.search_outlined),
+                    //           filled: false,
+                    //           border: OutlineInputBorder(
+                    //             borderRadius: BorderRadius.circular(
+                    //               AppConfig.borderRadius,
+                    //             ),
+                    //           ),
+                    //           hintText: AppConfig.defaultHomeserver,
+                    //           hintStyle: TextStyle(
+                    //             color: theme.colorScheme.surfaceTint,
+                    //           ),
+                    //           labelText: 'Sign in with:',
+                    //           errorText: controller.error,
+                    //           errorMaxLines: 4,
+                    //           suffixIcon: IconButton(
+                    //             onPressed: () {
+                    //               showDialog(
+                    //                 context: context,
+                    //                 builder: (context) => AlertDialog.adaptive(
+                    //                   title: Text(
+                    //                     L10n.of(context).whatIsAHomeserver,
+                    //                   ),
+                    //                   content: Linkify(
+                    //                     text: L10n.of(context)
+                    //                         .homeserverDescription,
+                    //                   ),
+                    //                   actions: [
+                    //                     AdaptiveDialogAction(
+                    //                       onPressed: () => launchUrl(
+                    //                         Uri.https('servers.joinmatrix.org'),
+                    //                       ),
+                    //                       child: Text(
+                    //                         L10n.of(context)
+                    //                             .discoverHomeservers,
+                    //                       ),
+                    //                     ),
+                    //                     AdaptiveDialogAction(
+                    //                       onPressed: Navigator.of(context).pop,
+                    //                       child: Text(L10n.of(context).close),
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //               );
+                    //             },
+                    //             icon: const Icon(Icons.info_outlined),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       const SizedBox(height: 32),
+                    //       ElevatedButton(
+                    //         style: ElevatedButton.styleFrom(
+                    //           backgroundColor: theme.colorScheme.primary,
+                    //           foregroundColor: theme.colorScheme.onPrimary,
+                    //         ),
+                    //         onPressed:
+                    //             controller.isLoggingIn || controller.isLoading
+                    //                 ? null
+                    //                 : controller.supportsSso
+                    //                     ? controller.ssoLoginAction
+                    //                     : controller.supportsPasswordLogin
+                    //                         ? controller.login
+                    //                         : null,
+                    //         child: Text(L10n.of(context).continueText),
+                    //       ),
+                    //       TextButton(
+                    //         style: TextButton.styleFrom(
+                    //           foregroundColor: theme.colorScheme.secondary,
+                    //           textStyle: theme.textTheme.labelMedium,
+                    //         ),
+                    //         onPressed:
+                    //             controller.isLoggingIn || controller.isLoading
+                    //                 ? null
+                    //                 : controller.restoreBackup,
+                    //         child: Text(L10n.of(context).hydrate),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                      child: SelectableLinkify(
-                        text: L10n.of(context).appIntroduction,
-                        textScaleFactor:
-                            MediaQuery.textScalerOf(context).scale(1),
-                        textAlign: TextAlign.center,
-                        linkStyle: TextStyle(
-                          color: theme.colorScheme.secondary,
-                          decorationColor: theme.colorScheme.secondary,
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: controller.login,
+                          onLongPress: controller.qrLogin,
+                          icon: const Icon(Icons.login_outlined),
+                          label: Text(L10n.of(context).login.toUpperCase()),
                         ),
-                        onOpen: (link) => launchUrlString(link.url),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 16),
                     Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          TextField(
-                            onSubmitted: (_) =>
-                                controller.checkHomeserverAction(),
-                            controller: controller.homeserverController,
-                            autocorrect: false,
-                            keyboardType: TextInputType.url,
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.search_outlined),
-                              filled: false,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppConfig.borderRadius,
-                                ),
-                              ),
-                              hintText: AppConfig.defaultHomeserver,
-                              hintStyle: TextStyle(
-                                color: theme.colorScheme.surfaceTint,
-                              ),
-                              labelText: 'Sign in with:',
-                              errorText: controller.error,
-                              errorMaxLines: 4,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog.adaptive(
-                                      title: Text(
-                                        L10n.of(context).whatIsAHomeserver,
-                                      ),
-                                      content: Linkify(
-                                        text: L10n.of(context)
-                                            .homeserverDescription,
-                                        textScaleFactor:
-                                            MediaQuery.textScalerOf(context)
-                                                .scale(1),
-                                        options: const LinkifyOptions(
-                                          humanize: false,
-                                        ),
-                                        linkStyle: TextStyle(
-                                          color: theme.colorScheme.primary,
-                                          decorationColor:
-                                              theme.colorScheme.primary,
-                                        ),
-                                        onOpen: (link) =>
-                                            launchUrlString(link.url),
-                                      ),
-                                      actions: [
-                                        AdaptiveDialogAction(
-                                          onPressed: () => launchUrl(
-                                            Uri.https('servers.joinmatrix.org'),
-                                          ),
-                                          child: Text(
-                                            L10n.of(context)
-                                                .discoverHomeservers,
-                                          ),
-                                        ),
-                                        AdaptiveDialogAction(
-                                          onPressed: Navigator.of(context).pop,
-                                          child: Text(L10n.of(context).close),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.info_outlined),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                            ),
-                            onPressed: controller.isLoading
-                                ? null
-                                : controller.checkHomeserverAction,
-                            child: controller.isLoading
-                                ? const LinearProgressIndicator()
-                                : Text(L10n.of(context).continueText),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.secondary,
-                              textStyle: theme.textTheme.labelMedium,
-                            ),
-                            onPressed: controller.isLoading
-                                ? null
-                                : () => controller.checkHomeserverAction(
-                                      legacyPasswordLogin: true,
-                                    ),
-                            child: Text(L10n.of(context).loginWithMatrixId),
-                          ),
-                        ],
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: controller.restoreBackup,
+                        child: Text(L10n.of(context).hydrate),
                       ),
                     ),
+
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

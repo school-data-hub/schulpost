@@ -49,6 +49,13 @@ class ChatListView extends StatelessWidget {
               excludeFromSemantics: true,
               behavior: HitTestBehavior.translucent,
               child: Scaffold(
+                // TODO: Check error on logout
+//                 The following StateError was thrown building HomeserverPickerView(dirty, dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#f00db]]):
+// Bad state: No element
+
+// The relevant error-causing widget was:
+//     HomeserverPickerView HomeserverPickerView:file:///Users/dominguis/code/schulpost/lib/pages/homeserver_picker/homeserver_picker.dart:196:41
+
                 body: ChatListViewBody(controller),
                 floatingActionButton: !controller.isSearchMode &&
                         controller.activeSpaceId == null

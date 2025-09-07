@@ -50,6 +50,7 @@ enum ActiveFilter {
   groups,
   unread,
   spaces,
+  settings,
 }
 
 extension LocalizedActiveFilter on ActiveFilter {
@@ -65,6 +66,8 @@ extension LocalizedActiveFilter on ActiveFilter {
         return L10n.of(context).groups;
       case ActiveFilter.spaces:
         return L10n.of(context).spaces;
+      case ActiveFilter.settings:
+        return L10n.of(context).settings;
     }
   }
 }
@@ -162,6 +165,8 @@ class ChatListController extends State<ChatList>
         return (room) => room.isUnreadOrInvited;
       case ActiveFilter.spaces:
         return (room) => room.isSpace;
+      case ActiveFilter.settings:
+        return (r) => r.isSpace;
     }
   }
 

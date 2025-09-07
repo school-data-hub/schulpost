@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class SettingKeys {
   static const String renderHtml = 'chat.fluffy.renderHtml';
+    static const String isTeacher = 'chat.fluffy.isTeacher';
   static const String hideRedactedEvents = 'chat.fluffy.hideRedactedEvents';
   static const String hideUnknownEvents = 'chat.fluffy.hideUnknownEvents';
   static const String hideUnimportantStateEvents =
@@ -46,7 +47,7 @@ enum AppSettings<T> {
   audioRecordingSamplingRate<int>('audioRecordingSamplingRate', 44100),
   pushNotificationsGatewayUrl<String>(
     'pushNotificationsGatewayUrl',
-    'https://push.fluffychat.im/_matrix/push/v1/notify',
+    'https://post.hermannschule.de:7023/_matrix/push/v1/notify',
   ),
   pushNotificationsPusherFormat<String>(
     'pushNotificationsPusherFormat',

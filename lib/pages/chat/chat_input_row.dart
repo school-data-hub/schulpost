@@ -128,7 +128,7 @@ class ChatInputRow extends StatelessWidget {
                   onSelected: controller.onAddPopupMenuButtonSelected,
                   itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<String>>[
-                    if (PlatformInfos.isMobile)
+                    if (PlatformInfos.isMobile && AppConfig.isTeacher)
                       PopupMenuItem<String>(
                         value: 'location',
                         child: ListTile(
@@ -154,18 +154,20 @@ class ChatInputRow extends StatelessWidget {
                         contentPadding: const EdgeInsets.all(0),
                       ),
                     ),
-                    PopupMenuItem<String>(
-                      value: 'video',
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: theme.colorScheme.onPrimaryContainer,
-                          foregroundColor: theme.colorScheme.primaryContainer,
-                          child: const Icon(Icons.video_camera_back_outlined),
+                    if (PlatformInfos.isMobile && AppConfig.isTeacher)
+                      PopupMenuItem<String>(
+                        value: 'video',
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                theme.colorScheme.onPrimaryContainer,
+                            foregroundColor: theme.colorScheme.primaryContainer,
+                            child: const Icon(Icons.video_camera_back_outlined),
+                          ),
+                          title: Text(L10n.of(context).sendVideo),
+                          contentPadding: const EdgeInsets.all(0),
                         ),
-                        title: Text(L10n.of(context).sendVideo),
-                        contentPadding: const EdgeInsets.all(0),
                       ),
-                    ),
                     PopupMenuItem<String>(
                       value: 'file',
                       child: ListTile(
@@ -181,7 +183,7 @@ class ChatInputRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (PlatformInfos.isMobile)
+              if (PlatformInfos.isMobile && AppConfig.isTeacher)
                 AnimatedContainer(
                   duration: FluffyThemes.animationDuration,
                   curve: FluffyThemes.animationCurve,

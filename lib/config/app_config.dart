@@ -3,38 +3,44 @@ import 'dart:ui';
 import 'package:matrix/matrix.dart';
 
 abstract class AppConfig {
-  static String _applicationName = 'FluffyChat';
+  static String _applicationName = 'Hermannpost';
 
   static String get applicationName => _applicationName;
   static String? _applicationWelcomeMessage;
 
   static String? get applicationWelcomeMessage => _applicationWelcomeMessage;
-  static String _defaultHomeserver = 'matrix.org';
+  static String _defaultHomeserver = 'post.hermannschule.de';
 
   static String get defaultHomeserver => _defaultHomeserver;
-  static double fontSizeFactor = 1;
+  static double fontSizeFactor = 1.2;
   static const Color chatColor = primaryColor;
   static Color? colorSchemeSeed = primaryColor;
   static const double messageFontSize = 16.0;
   static const bool allowOtherHomeservers = true;
-  static const bool enableRegistration = true;
+  static const bool enableRegistration = false;
+  static bool get isTeacher => _isTeacher;
+  static set setIsTeacher(bool value) {
+    _isTeacher = value;
+  }
+
+  static bool _isTeacher = false;
   static const Color primaryColor = Color(0xFF5625BA);
   static const Color primaryColorLight = Color(0xFFCCBDEA);
   static const Color secondaryColor = Color(0xFF41a2bc);
   static String _privacyUrl =
-      'https://github.com/krille-chan/fluffychat/blob/main/PRIVACY.md';
+      'https://hermannschule.de/hermannpost/datenschutz.html';
 
   static const Set<String> defaultReactions = {'👍', '❤️', '😂', '😮', '😢'};
 
   static String get privacyUrl => _privacyUrl;
-  static const String website = 'https://fluffychat.im';
+  static const String website = 'https://hermannschule.de/Hermannpost.html';
   static const String enablePushTutorial =
       'https://github.com/krille-chan/fluffychat/wiki/Push-Notifications-without-Google-Services';
   static const String encryptionTutorial =
       'https://github.com/krille-chan/fluffychat/wiki/How-to-use-end-to-end-encryption-in-FluffyChat';
   static const String startChatTutorial =
       'https://github.com/krille-chan/fluffychat/wiki/How-to-Find-Users-in-FluffyChat';
-  static const String appId = 'im.fluffychat.FluffyChat';
+  static const String appId = 'de.hermannschule.hermannpost';
   static const String appOpenUrlScheme = 'im.fluffychat';
   static String _webBaseUrl = 'https://fluffychat.im/web';
 
@@ -51,7 +57,8 @@ abstract class AppConfig {
     path: '/krille-chan/fluffychat/issues/new',
   );
   static bool renderHtml = true;
-  static bool hideRedactedEvents = false;
+  static bool hideRedactedEvents = true;
+  static bool hideUnimportantStateEvents = true;
   static bool hideUnknownEvents = true;
   static bool separateChatTypes = false;
   static bool autoplayImages = true;
@@ -66,7 +73,7 @@ abstract class AppConfig {
   static const String inviteLinkPrefix = 'https://matrix.to/#/';
   static const String deepLinkPrefix = 'im.fluffychat://chat/';
   static const String schemePrefix = 'matrix:';
-  static const String pushNotificationsChannelId = 'fluffychat_push';
+  static const String pushNotificationsChannelId = 'hermannpost-id';
   static const String pushNotificationsAppId = 'de.hermannschule.hermannpost';
   static const double borderRadius = 18.0;
   static const double columnWidth = 360.0;
@@ -95,6 +102,9 @@ abstract class AppConfig {
     }
     if (json['default_homeserver'] is String) {
       _defaultHomeserver = json['default_homeserver'];
+    }
+    if (json['isTeacher'] is bool) {
+      _isTeacher = json['isTeacher'];
     }
     if (json['privacy_url'] is String) {
       _privacyUrl = json['privacy_url'];

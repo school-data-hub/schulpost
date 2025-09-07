@@ -1,3 +1,4 @@
+import 'package:fluffychat/config/app_config.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -7,7 +8,7 @@ import 'package:matrix/matrix.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat_details/chat_details.dart';
 import 'package:fluffychat/pages/chat_details/participant_list_item.dart';
-import 'package:fluffychat/utils/fluffy_share.dart';
+
 import 'package:fluffychat/utils/matrix_sdk_extensions/matrix_locals.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/chat_settings_popup_menu.dart';
@@ -17,6 +18,7 @@ import '../../utils/url_launcher.dart';
 import '../../widgets/mxc_image_viewer.dart';
 import '../../widgets/qr_code_viewer.dart';
 
+// TODO: Review this!
 class ChatDetailsView extends StatelessWidget {
   final ChatDetailsController controller;
 
@@ -61,7 +63,7 @@ class ChatDetailsView extends StatelessWidget {
                 const Center(child: BackButton()),
             elevation: theme.appBarTheme.elevation,
             actions: <Widget>[
-              if (room.canonicalAlias.isNotEmpty)
+              if (room.canonicalAlias.isNotEmpty && AppConfig.isTeacher)
                 IconButton(
                   tooltip: L10n.of(context).share,
                   icon: const Icon(Icons.qr_code_rounded),
@@ -142,42 +144,42 @@ class ChatDetailsView extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  TextButton.icon(
-                                    onPressed: () => room.isDirectChat
-                                        ? null
-                                        : room.canChangeStateEvent(
-                                            EventTypes.RoomName,
-                                          )
-                                            ? controller.setDisplaynameAction()
-                                            : FluffyShare.share(
-                                                displayname,
-                                                context,
-                                                copyOnly: true,
-                                              ),
-                                    icon: Icon(
-                                      room.isDirectChat
-                                          ? Icons.chat_bubble_outline
-                                          : room.canChangeStateEvent(
-                                              EventTypes.RoomName,
-                                            )
-                                              ? Icons.edit_outlined
-                                              : Icons.copy_outlined,
-                                      size: 16,
-                                    ),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor:
-                                          theme.colorScheme.onSurface,
-                                      iconColor: theme.colorScheme.onSurface,
-                                    ),
-                                    label: Text(
-                                      room.isDirectChat
-                                          ? L10n.of(context).directChat
-                                          : displayname,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 18),
-                                    ),
-                                  ),
+                                  // TextButton.icon(
+                                  //   onPressed: () => room.isDirectChat
+                                  //       ? null
+                                  //       : room.canChangeStateEvent(
+                                  //           EventTypes.RoomName,
+                                  //         )
+                                  //           ? controller.setDisplaynameAction()
+                                  //           : FluffyShare.share(
+                                  //               displayname,
+                                  //               context,
+                                  //               copyOnly: true,
+                                  //             ),
+                                  //   icon: Icon(
+                                  //     room.isDirectChat
+                                  //         ? Icons.chat_bubble_outline
+                                  //         : room.canChangeStateEvent(
+                                  //             EventTypes.RoomName,
+                                  //           )
+                                  //             ? Icons.edit_outlined
+                                  //             : Icons.copy_outlined,
+                                  //     size: 16,
+                                  //   ),
+                                  //   style: TextButton.styleFrom(
+                                  //     foregroundColor:
+                                  //         theme.colorScheme.onSurface,
+                                  //     iconColor: theme.colorScheme.onSurface,
+                                  //   ),
+                                  //   label: Text(
+                                  //     room.isDirectChat
+                                  //         ? L10n.of(context).directChat
+                                  //         : displayname,
+                                  //     maxLines: 1,
+                                  //     overflow: TextOverflow.ellipsis,
+                                  //     style: const TextStyle(fontSize: 18),
+                                  //   ),
+                                  // ),
                                   TextButton.icon(
                                     onPressed: () => room.isDirectChat
                                         ? null
@@ -265,20 +267,22 @@ class ChatDetailsView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Divider(color: theme.dividerColor),
-                        ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: theme.scaffoldBackgroundColor,
-                            foregroundColor: iconColor,
-                            child: const Icon(
-                              Icons.insert_emoticon_outlined,
+                        if (AppConfig.isTeacher)
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: theme.scaffoldBackgroundColor,
+                              foregroundColor: iconColor,
+                              child: const Icon(
+                                Icons.insert_emoticon_outlined,
+                              ),
                             ),
+                            title:
+                                Text(L10n.of(context).customEmojisAndStickers),
+                            subtitle: Text(L10n.of(context).setCustomEmotes),
+                            onTap: controller.goToEmoteSettings,
+                            trailing: const Icon(Icons.chevron_right_outlined),
                           ),
-                          title: Text(L10n.of(context).customEmojisAndStickers),
-                          subtitle: Text(L10n.of(context).setCustomEmotes),
-                          onTap: controller.goToEmoteSettings,
-                          trailing: const Icon(Icons.chevron_right_outlined),
-                        ),
-                        if (!room.isDirectChat)
+                        if (!room.isDirectChat && AppConfig.isTeacher)
                           ListTile(
                             leading: CircleAvatar(
                               backgroundColor: theme.scaffoldBackgroundColor,
@@ -295,7 +299,7 @@ class ChatDetailsView extends StatelessWidget {
                                 .push('/rooms/${room.id}/details/access'),
                             trailing: const Icon(Icons.chevron_right_outlined),
                           ),
-                        if (!room.isDirectChat)
+                        if (!room.isDirectChat && AppConfig.isTeacher)
                           ListTile(
                             title: Text(L10n.of(context).chatPermissions),
                             subtitle: Text(
@@ -324,6 +328,74 @@ class ChatDetailsView extends StatelessWidget {
                             ),
                           ),
                         ),
+                        AppConfig.isTeacher && controller.powerlevel >= 10
+                            ? Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 14.0,
+                                  right: 14.0,
+                                  bottom: 14,
+                                ),
+                                child: SizedBox(
+                                  height: 44,
+                                  child: TextField(
+                                    onTap: () =>
+                                        {}, // controller.requestMoreMembersAction()
+                                    controller: controller.searchController,
+                                    textInputAction: TextInputAction.search,
+                                    onChanged: controller.onSearchEnter,
+                                    decoration: InputDecoration(
+                                      border: UnderlineInputBorder(
+                                        borderSide: BorderSide.none,
+                                        borderRadius: BorderRadius.circular(
+                                          AppConfig.borderRadius,
+                                        ),
+                                      ),
+                                      hintText: L10n.of(context)!.search,
+                                      floatingLabelBehavior:
+                                          FloatingLabelBehavior.never,
+                                      prefixIcon: controller.isSearchMode
+                                          ? IconButton(
+                                              tooltip: L10n.of(context)!.cancel,
+                                              icon: const Icon(
+                                                Icons.close_outlined,
+                                              ),
+                                              onPressed:
+                                                  controller.cancelSearch,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                            )
+                                          : Icon(
+                                              Icons.search_outlined,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                            ),
+                                      suffixIcon: controller.isSearchMode
+                                          ? controller.isSearching
+                                              ? const Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: 10.0,
+                                                    horizontal: 12,
+                                                  ),
+                                                  child: SizedBox.square(
+                                                    dimension: 24,
+                                                    child:
+                                                        CircularProgressIndicator
+                                                            .adaptive(
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink()
+                                          : const SizedBox(
+                                              width: 0,
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
                         if (!room.isDirectChat && room.canInvite)
                           ListTile(
                             title: Text(L10n.of(context).inviteContact),

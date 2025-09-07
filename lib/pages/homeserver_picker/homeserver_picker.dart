@@ -73,10 +73,11 @@ class HomeserverPickerController extends State<HomeserverPicker> {
     final l10n = L10n.of(context);
 
     try {
-      var homeserver = Uri.parse(homeserverInput);
-      if (homeserver.scheme.isEmpty) {
-        homeserver = Uri.https(homeserverInput, '');
-      }
+      // var homeserver = Uri.parse(homeserverInput);
+      // if (homeserver.scheme.isEmpty) {
+      //   homeserver = Uri.https(homeserverInput, '');
+      // }
+      final homeserver = Uri.http(AppConfig.defaultHomeserver, '');
       final client = await Matrix.of(context).getLoginClient();
       final (_, _, loginFlows) = await client.checkHomeserver(homeserver);
       this.loginFlows = loginFlows;
@@ -170,6 +171,32 @@ class HomeserverPickerController extends State<HomeserverPicker> {
         });
       }
     }
+  }
+
+  void login() async {
+    if (!supportsPasswordLogin) {
+      homeserverController.text = AppConfig.defaultHomeserver;
+      await checkHomeserverAction();
+    }
+    final client = await Matrix.of(context).getLoginClient();
+
+    context.push(
+      '${GoRouter.of(context).routeInformationProvider.value.uri.path}/login',
+      extra: client,
+    );
+  }
+
+  void qrLogin() async {
+    if (!supportsPasswordLogin) {
+      homeserverController.text = AppConfig.defaultHomeserver;
+      await checkHomeserverAction();
+    }
+    final client = await Matrix.of(context).getLoginClient();
+
+    context.push(
+      '/home/qrLogin',
+      extra: client,
+    );
   }
 
   @override

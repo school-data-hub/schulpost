@@ -27,7 +27,7 @@ import '../../utils/stream_extension.dart';
 import 'chat_emoji_picker.dart';
 import 'chat_input_row.dart';
 
-enum _EventContextAction { info, report }
+// enum _EventContextAction { info, report }
 
 class ChatView extends StatelessWidget {
   final ChatController controller;
@@ -39,83 +39,88 @@ class ChatView extends StatelessWidget {
       return [
         if (controller.canEditSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.edit_outlined),
+            icon: Image.asset('assets/hp-pencil.png', scale: 8),
             tooltip: L10n.of(context).edit,
             onPressed: controller.editSelectedEventAction,
           ),
         IconButton(
-          icon: const Icon(Icons.copy_outlined),
+          icon: Image.asset('assets/hp-copy.png', scale: 8),
           tooltip: L10n.of(context).copy,
           onPressed: controller.copyEventsAction,
         ),
         if (controller.canPinSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.push_pin_outlined),
+            icon: Image.asset('assets/hp-pin.png', scale: 8),
             onPressed: controller.pinEvent,
             tooltip: L10n.of(context).pinMessage,
           ),
         if (controller.canRedactSelectedEvents)
           IconButton(
-            icon: const Icon(Icons.delete_outlined),
+            icon: Image.asset('assets/hp-bin.png', scale: 8),
             tooltip: L10n.of(context).redactMessage,
             onPressed: controller.redactEventsAction,
           ),
         if (controller.selectedEvents.length == 1)
-          PopupMenuButton<_EventContextAction>(
-            useRootNavigator: true,
-            onSelected: (action) {
-              switch (action) {
-                case _EventContextAction.info:
-                  controller.showEventInfo();
-                  controller.clearSelectedEvents();
-                  break;
-                case _EventContextAction.report:
-                  controller.reportEventAction();
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              if (controller.canSaveSelectedEvent)
-                PopupMenuItem(
-                  onTap: () => controller.saveSelectedEvent(context),
-                  value: null,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.download_outlined),
-                      const SizedBox(width: 12),
-                      Text(L10n.of(context).downloadFile),
-                    ],
-                  ),
-                ),
-              PopupMenuItem(
-                value: _EventContextAction.info,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.info_outlined),
-                    const SizedBox(width: 12),
-                    Text(L10n.of(context).messageInfo),
-                  ],
-                ),
-              ),
-              if (controller.selectedEvents.single.status.isSent)
-                PopupMenuItem(
-                  value: _EventContextAction.report,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.shield_outlined,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(L10n.of(context).reportMessage),
-                    ],
-                  ),
-                ),
-            ],
+          IconButton(
+            icon: Image.asset('assets/hp-warning.png', scale: 8),
+            onPressed: () => controller.reportEventAction(),
+            tooltip: L10n.of(context)!.pinMessage,
           ),
+        // PopupMenuButton<_EventContextAction>(
+        //   useRootNavigator: true,
+        //   onSelected: (action) {
+        //     switch (action) {
+        //       case _EventContextAction.info:
+        //         controller.showEventInfo();
+        //         controller.clearSelectedEvents();
+        //         break;
+        //       case _EventContextAction.report:
+        //         controller.reportEventAction();
+        //         break;
+        //     }
+        //   },
+        //   itemBuilder: (context) => [
+        //     if (controller.canSaveSelectedEvent)
+        //       PopupMenuItem(
+        //         onTap: () => controller.saveSelectedEvent(context),
+        //         value: null,
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             const Icon(Icons.download_outlined),
+        //             const SizedBox(width: 12),
+        //             Text(L10n.of(context).downloadFile),
+        //           ],
+        //         ),
+        //       ),
+        //     PopupMenuItem(
+        //       value: _EventContextAction.info,
+        //       child: Row(
+        //         mainAxisSize: MainAxisSize.min,
+        //         children: [
+        //           const Icon(Icons.info_outlined),
+        //           const SizedBox(width: 12),
+        //           Text(L10n.of(context).messageInfo),
+        //         ],
+        //       ),
+        //     ),
+        //     if (controller.selectedEvents.single.status.isSent)
+        //       PopupMenuItem(
+        //         value: _EventContextAction.report,
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             const Icon(
+        //               Icons.shield_outlined,
+        //               color: Colors.red,
+        //             ),
+        //             const SizedBox(width: 12),
+        //             Text(L10n.of(context).reportMessage),
+        //           ],
+        //         ),
+        //       ),
+        //   ],
+        // ),
       ];
     } else if (!controller.room.isArchived) {
       return [
@@ -127,7 +132,7 @@ class ChatView extends StatelessWidget {
             icon: const Icon(Icons.call_outlined),
             tooltip: L10n.of(context).placeCall,
           ),
-        EncryptionButton(controller.room),
+        if (AppConfig.isTeacher) EncryptionButton(controller.room),
         ChatSettingsPopupMenu(controller.room, true),
       ];
     }

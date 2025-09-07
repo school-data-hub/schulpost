@@ -20,9 +20,20 @@ extension IsStateExtension on Event {
       !{EventTypes.Reaction, EventTypes.Redaction}.contains(type) &&
       // if we enabled to hide all redacted events, don't show those
       (!AppConfig.hideRedactedEvents || !redacted) &&
+      // hide unimportant state events
+      (!AppConfig.hideUnimportantStateEvents ||
+          !isState ||
+          importantStateEvents.contains(type)) &&
       // if we enabled to hide all unknown events, don't show those
       (!AppConfig.hideUnknownEvents || isEventTypeKnown);
 
+  static const Set<String> importantStateEvents = {
+    EventTypes.Encryption,
+    EventTypes.RoomCreate,
+    // EventTypes.RoomMember,
+    //EventTypes.RoomTombstone,
+    //EventTypes.CallInvite,
+  };
   bool get isState => !{
         EventTypes.Message,
         EventTypes.Sticker,

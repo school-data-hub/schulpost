@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fluffychat/utils/encrypted_credentials/encrypted_login_response.dart';
 import 'package:flutter/material.dart';
 
 import 'package:matrix/matrix.dart';
@@ -69,7 +70,7 @@ class LoginController extends State<Login> {
       } else {
         identifier = AuthenticationUserIdentifier(user: username);
       }
-      final client = await matrix.getLoginClient();
+     final client = await matrix.getLoginClient();
       await client.login(
         LoginType.mLoginPassword,
         identifier: identifier,
@@ -81,6 +82,78 @@ class LoginController extends State<Login> {
         password: passwordController.text,
         initialDeviceDisplayName: PlatformInfos.clientName,
       );
+    } on MatrixException catch (exception) {
+      setState(() => passwordError = exception.errorMessage);
+      return setState(() => loading = false);
+    } catch (exception) {
+      setState(() => passwordError = exception.toString());
+      return setState(() => loading = false);
+    }
+
+    if (mounted) setState(() => loading = false);
+  }
+
+  void encryptedLogin() async {
+    final matrix = Matrix.of(context);
+    if (usernameController.text.isEmpty) {
+      setState(() => usernameError = L10n.of(context).pleaseEnterYourUsername);
+    } else {
+      setState(() => usernameError = null);
+    }
+    if (passwordController.text.isEmpty) {
+      setState(() => passwordError = L10n.of(context).pleaseEnterYourPassword);
+    } else {
+      setState(() => passwordError = null);
+    }
+
+    if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
+      return;
+    }
+
+    setState(() => loading = true);
+
+    _coolDown?.cancel();
+
+    try {
+      final username = usernameController.text;
+      AuthenticationIdentifier identifier;
+      if (username.isEmail) {
+        identifier = AuthenticationThirdPartyIdentifier(
+          medium: 'email',
+          address: username,
+        );
+      } else if (username.isPhoneNumber) {
+        identifier = AuthenticationThirdPartyIdentifier(
+          medium: 'msisdn',
+          address: username,
+        );
+      } else {
+        identifier = AuthenticationUserIdentifier(user: username);
+      }
+      final client = await matrix.getLoginClient();
+      final loginResponse = await encryptedLoginResponse(
+  LoginType.mLoginPassword,
+  baseUri: client.homeserver,
+  identifier: identifier,
+  // To stay compatible with older server versions
+  user: identifier.type == AuthenticationIdentifierTypes.userId
+      ? username
+      : null,
+  password: passwordController.text,
+  initialDeviceDisplayName: PlatformInfos.clientName,
+);
+await client.init(
+  newToken: loginResponse.accessToken,
+  newTokenExpiresAt: loginResponse.expiresInMs == null
+      ? null
+      : DateTime.now().add(Duration(milliseconds: loginResponse.expiresInMs!)),
+  newRefreshToken: loginResponse.refreshToken,
+  newUserID: loginResponse.userId,
+  newHomeserver: client.homeserver,
+  newDeviceName: PlatformInfos.clientName,
+  newDeviceID: loginResponse.deviceId,
+  
+);
     } on MatrixException catch (exception) {
       setState(() => passwordError = exception.errorMessage);
       return setState(() => loading = false);

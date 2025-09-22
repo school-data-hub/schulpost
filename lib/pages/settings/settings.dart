@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
@@ -32,6 +34,18 @@ class SettingsController extends State<Settings> {
         profileUpdated = true;
         profileFuture = null;
       });
+  void changeTeacherStatus() async {
+    final bool newStatus;
+    if (AppConfig.isTeacher == true) {
+      newStatus = false;
+    } else {
+      newStatus = true;
+    }
+    await Matrix.of(context).store.setBool(SettingKeys.isTeacher, newStatus);
+    setState(() {
+      AppConfig.isTeacher == (newStatus);
+    });
+  }
 
   void setDisplaynameAction() async {
     final profile = await profileFuture;

@@ -52,7 +52,7 @@ android/app/google-services.json
 android/Gemfile.lock
 lib/l10n/*.dart
 ios/Flutter/.last_build_id
-ios/Podfile.lock
+# ios/Podfile.lock
 ios/Runner.ipa
 ios/Runner/GoogleServices-Info.plist
 

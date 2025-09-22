@@ -1,3 +1,5 @@
+import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
+import 'package:fluffychat/widgets/user_bottom_sheet/user_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart' show IterableExtension;
@@ -230,10 +232,12 @@ class UrlLauncher {
           },
         ),
       );
-      await UserDialog.show(
+      await showAdaptiveBottomSheet(
         context: context,
-        profile: profileResult.result!,
-        noProfileWarning: noProfileWarning,
+        builder: (c) => LoadProfileBottomSheet(
+          userId: identityParts.primaryIdentifier,
+          outerContext: context,
+        ),
       );
     }
   }

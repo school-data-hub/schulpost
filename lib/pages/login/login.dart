@@ -70,7 +70,7 @@ class LoginController extends State<Login> {
       } else {
         identifier = AuthenticationUserIdentifier(user: username);
       }
-     final client = await matrix.getLoginClient();
+      final client = await matrix.getLoginClient();
       await client.login(
         LoginType.mLoginPassword,
         identifier: identifier,
@@ -93,6 +93,7 @@ class LoginController extends State<Login> {
     if (mounted) setState(() => loading = false);
   }
 
+  /// WIP: This is targeting a custom api in the gateway to use encrypted login
   void encryptedLogin() async {
     final matrix = Matrix.of(context);
     if (usernameController.text.isEmpty) {
@@ -132,28 +133,28 @@ class LoginController extends State<Login> {
       }
       final client = await matrix.getLoginClient();
       final loginResponse = await encryptedLoginResponse(
-  LoginType.mLoginPassword,
-  baseUri: client.homeserver,
-  identifier: identifier,
-  // To stay compatible with older server versions
-  user: identifier.type == AuthenticationIdentifierTypes.userId
-      ? username
-      : null,
-  password: passwordController.text,
-  initialDeviceDisplayName: PlatformInfos.clientName,
-);
-await client.init(
-  newToken: loginResponse.accessToken,
-  newTokenExpiresAt: loginResponse.expiresInMs == null
-      ? null
-      : DateTime.now().add(Duration(milliseconds: loginResponse.expiresInMs!)),
-  newRefreshToken: loginResponse.refreshToken,
-  newUserID: loginResponse.userId,
-  newHomeserver: client.homeserver,
-  newDeviceName: PlatformInfos.clientName,
-  newDeviceID: loginResponse.deviceId,
-  
-);
+        LoginType.mLoginPassword,
+        baseUri: client.homeserver,
+        identifier: identifier,
+        // To stay compatible with older server versions
+        user: identifier.type == AuthenticationIdentifierTypes.userId
+            ? username
+            : null,
+        password: passwordController.text,
+        initialDeviceDisplayName: PlatformInfos.clientName,
+      );
+      await client.init(
+        newToken: loginResponse.accessToken,
+        newTokenExpiresAt: loginResponse.expiresInMs == null
+            ? null
+            : DateTime.now()
+                .add(Duration(milliseconds: loginResponse.expiresInMs!)),
+        newRefreshToken: loginResponse.refreshToken,
+        newUserID: loginResponse.userId,
+        newHomeserver: client.homeserver,
+        newDeviceName: PlatformInfos.clientName,
+        newDeviceID: loginResponse.deviceId,
+      );
     } on MatrixException catch (exception) {
       setState(() => passwordError = exception.errorMessage);
       return setState(() => loading = false);

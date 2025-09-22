@@ -181,7 +181,7 @@ class HomeserverPickerController extends State<HomeserverPicker> {
     final client = await Matrix.of(context).getLoginClient();
 
     context.push(
-      '${GoRouter.of(context).routeInformationProvider.value.uri.path}/login',
+      '/home/login',
       extra: client,
     );
   }

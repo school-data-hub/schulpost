@@ -96,6 +96,7 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.0.1
   future_loading_dialog: ^0.3.0
+  barcode_scan2: ^4.5.1
 
 
 dev_dependencies:
@@ -128,6 +129,7 @@ flutter:
     - assets/keys/
     - assets/sounds/
     - assets/vodozemac/
+    - shorebird.yaml
 
 msix_config:
   display_name: FluffyChat

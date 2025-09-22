@@ -47,16 +47,6 @@ class SettingsView extends StatelessWidget {
         ],
         Expanded(
           child: Scaffold(
-            appBar: FluffyThemes.isColumnMode(context)
-                ? null
-                : AppBar(
-                    title: Text(L10n.of(context).settings),
-                    leading: Center(
-                      child: BackButton(
-                        onPressed: () => context.go('/rooms'),
-                      ),
-                    ),
-                  ),
             body: ListTileTheme(
               iconColor: theme.colorScheme.onSurface,
               child: ListView(
@@ -110,44 +100,114 @@ class SettingsView extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TextButton.icon(
-                                  onPressed: controller.setDisplaynameAction,
-                                  icon: const Icon(
-                                    Icons.edit_outlined,
-                                    size: 16,
-                                  ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor:
-                                        theme.colorScheme.onSurface,
-                                    iconColor: theme.colorScheme.onSurface,
-                                  ),
-                                  label: Text(
-                                    displayname,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                    ),
+                                Text(
+                                  displayname,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 18,
                                   ),
                                 ),
-                                TextButton.icon(
-                                  onPressed: () =>
-                                      FluffyShare.share(mxid, context),
-                                  icon: const Icon(
-                                    Icons.copy_outlined,
-                                    size: 14,
+                                if (AppConfig.isTeacher)
+                                  TextButton.icon(
+                                    onPressed: () =>
+                                        FluffyShare.share(mxid, context),
+                                    icon: const Icon(
+                                      Icons.copy_outlined,
+                                      size: 14,
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          theme.colorScheme.secondary,
+                                      iconColor: theme.colorScheme.secondary,
+                                    ),
+                                    label: Text(
+                                      mxid,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      //    style: const TextStyle(fontSize: 12),
+                                    ),
                                   ),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor:
-                                        theme.colorScheme.secondary,
-                                    iconColor: theme.colorScheme.secondary,
-                                  ),
-                                  label: Text(
-                                    mxid,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    //    style: const TextStyle(fontSize: 12),
-                                  ),
+                                Row(
+                                  children: [
+                                    if (AppConfig.isTeacher)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 4.0),
+                                        child: Container(
+                                          width: 30.0,
+                                          height: 30.0,
+                                          decoration: const BoxDecoration(
+                                            color: Color.fromARGB(
+                                                229, 232, 212, 253),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.school,
+                                              color: Colors.black,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    if (mxid.contains('_e:'))
+                                      Container(
+                                        width: 30.0,
+                                        height: 30.0,
+                                        decoration: const BoxDecoration(
+                                          color: Color.fromARGB(
+                                              229, 232, 212, 253),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.family_restroom_rounded,
+                                            color: Colors.black,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    if (mxid.contains('_:'))
+                                      Container(
+                                        width: 30.0,
+                                        height: 30.0,
+                                        decoration: const BoxDecoration(
+                                          color: Color.fromARGB(
+                                              229, 232, 212, 253),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.account_circle_rounded,
+                                            color: Colors.black,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    if (mxid.contains('_e:'))
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          'Elternkonto',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    if (mxid.contains('_:'))
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          'Hermannkind',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -193,27 +253,10 @@ class SettingsView extends StatelessWidget {
                     onTap: () => context.go('/rooms/settings/style'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.notifications_outlined),
-                    title: Text(L10n.of(context).notifications),
-                    tileColor:
-                        activeRoute.startsWith('/rooms/settings/notifications')
-                            ? theme.colorScheme.surfaceContainerHigh
-                            : null,
-                    onTap: () => context.go('/rooms/settings/notifications'),
-                  ),
-                  ListTile(
                     leading: const Icon(Icons.devices_outlined),
                     title: Text(L10n.of(context).devices),
                     onTap: () => context.go('/rooms/settings/devices'),
                     tileColor: activeRoute.startsWith('/rooms/settings/devices')
-                        ? theme.colorScheme.surfaceContainerHigh
-                        : null,
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.forum_outlined),
-                    title: Text(L10n.of(context).chat),
-                    onTap: () => context.go('/rooms/settings/chat'),
-                    tileColor: activeRoute.startsWith('/rooms/settings/chat')
                         ? theme.colorScheme.surfaceContainerHigh
                         : null,
                   ),
@@ -227,20 +270,6 @@ class SettingsView extends StatelessWidget {
                             : null,
                   ),
                   Divider(color: theme.dividerColor),
-                  ListTile(
-                    leading: const Icon(Icons.dns_outlined),
-                    title: Text(
-                      L10n.of(context).aboutHomeserver(
-                        Matrix.of(context).client.userID?.domain ??
-                            'homeserver',
-                      ),
-                    ),
-                    onTap: () => context.go('/rooms/settings/homeserver'),
-                    tileColor:
-                        activeRoute.startsWith('/rooms/settings/homeserver')
-                            ? theme.colorScheme.surfaceContainerHigh
-                            : null,
-                  ),
                   ListTile(
                     leading: const Icon(Icons.privacy_tip_outlined),
                     title: Text(L10n.of(context).privacy),

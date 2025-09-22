@@ -16,9 +16,7 @@ import '../../config/setting_keys.dart';
 import '../../utils/platform_infos.dart';
 
 class QrLoginScreen extends StatefulWidget {
-   
   const QrLoginScreen({r, super.key});
-
 
   @override
   QrLoginState createState() => QrLoginState();
@@ -33,15 +31,15 @@ class QrLoginState extends State<QrLoginScreen> {
       'Scanne den QR-Code, den du von deiner Schule bekommen hast!';
   String loginScanImage = 'assets/hermannkey.png';
 
- String? error;
-   List<LoginFlow>? loginFlows;
-
+  String? error;
+  List<LoginFlow>? loginFlows;
 
   /// Starts an analysis of the given homeserver. It uses the current domain and
   /// makes sure that it is prefixed with https. Then it searches for the
   /// well-known information and forwards to the login page depending on the
   /// login type.
-  Future<void> checkHomeserverAction({bool legacyPasswordLogin = false, required String homeServer}) async {
+  Future<void> checkHomeserverAction(
+      {bool legacyPasswordLogin = false, required String homeServer}) async {
     final homeserverInput =
         homeServer.trim().toLowerCase().replaceAll(' ', '-');
 
@@ -69,7 +67,7 @@ class QrLoginState extends State<QrLoginScreen> {
       final client = await Matrix.of(context).getLoginClient();
       final (_, _, loginFlows) = await client.checkHomeserver(homeserver);
       this.loginFlows = loginFlows;
-      
+
       context.push(
         '${GoRouter.of(context).routeInformationProvider.value.uri.path}/login',
         extra: client,
@@ -90,7 +88,7 @@ class QrLoginState extends State<QrLoginScreen> {
 
   void loginWithScan() async {
     final matrix = Matrix.of(context);
-  
+
     // scan credentials from QR code
 
     final scannedCredentials = await getScannedCredentials(context);
@@ -119,7 +117,6 @@ class QrLoginState extends State<QrLoginScreen> {
       );
       return;
     }
-    
 
     setState(() {
       loginScanImage = 'assets/scansuccess.png';
@@ -180,23 +177,28 @@ class QrLoginState extends State<QrLoginScreen> {
 
     try {
       final client = await matrix.getLoginClient();
-      
+      final username = scannedCredentials.userId;
+      final identifier = AuthenticationUserIdentifier(user: username);
       await client.login(
-            LoginType.mLoginPassword,
-            identifier:
-                AuthenticationUserIdentifier(user: scannedCredentials.userId),
-            password: password,
-            initialDeviceDisplayName: PlatformInfos.clientName,
-          );
+        LoginType.mLoginPassword,
+        identifier: identifier,
+        // To stay compatible with older server versions
+        // ignore: deprecated_member_use
+        user: identifier.type == AuthenticationIdentifierTypes.userId
+            ? username
+            : null,
+        password: password,
+        initialDeviceDisplayName: PlatformInfos.clientName,
+      );
     } on MatrixException catch (exception) {
       // on exception, show error message
-
+      String authErrorMessage = exception.errorMessage;
       setState(() {
-        final authError = exception.errorMessage;
+        final authError = authErrorMessage;
         loginScanImage = 'assets/wrongpin.png';
         loginScanMessage = 'Bitte an Admin melden: $authError';
       });
-      await _wrongPinDialog();
+      await _authError(authErrorMessage);
       setState(() => isLoading = false);
       return;
     }
@@ -265,19 +267,19 @@ class QrLoginState extends State<QrLoginScreen> {
     return input;
   }
 
-  Future<void> _wrongPinDialog() async {
+  Future<void> _authError(String errorMessage) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('PIN stimmt nicht!'),
-          content: const SingleChildScrollView(
+          content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Die PIN-Nummer ist nicht richtig!'),
-                Text(' '),
-                Text('Versuche es nochmal oder melde dich beim Admin.'),
+                Text(errorMessage),
+                const Text(' '),
+                const Text('Versuche es nochmal oder melde dich beim Admin.'),
               ],
             ),
           ),

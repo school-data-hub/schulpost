@@ -59,21 +59,6 @@ class SettingsSecurityView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SettingsSwitchListTile.adaptive(
-                    title: L10n.of(context).sendTypingNotifications,
-                    subtitle:
-                        L10n.of(context).sendTypingNotificationsDescription,
-                    onChanged: (b) => AppConfig.sendTypingNotifications = b,
-                    storeKey: SettingKeys.sendTypingNotifications,
-                    defaultValue: AppConfig.sendTypingNotifications,
-                  ),
-                  SettingsSwitchListTile.adaptive(
-                    title: L10n.of(context).sendReadReceipts,
-                    subtitle: L10n.of(context).sendReadReceiptsDescription,
-                    onChanged: (b) => AppConfig.sendPublicReadReceipts = b,
-                    storeKey: SettingKeys.sendPublicReadReceipts,
-                    defaultValue: AppConfig.sendPublicReadReceipts,
-                  ),
                   ListTile(
                     trailing: const Icon(Icons.chevron_right_outlined),
                     title: Text(L10n.of(context).blockedUsers),

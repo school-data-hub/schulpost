@@ -280,6 +280,11 @@ class SettingsView extends StatelessWidget {
                     title: Text(L10n.of(context).about),
                     onTap: () => PlatformInfos.showDialog(context),
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.build_outlined),
+                    title: Text(
+                        'Patch Level:  ${controller.updateManager.currentPatch?.number.toString() ?? "0"}'),
+                  ),
                   Divider(color: theme.dividerColor),
                   ListTile(
                     leading: const Icon(Icons.logout_outlined),

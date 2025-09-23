@@ -97,6 +97,7 @@ dependencies:
   mobile_scanner: ^7.0.1
   future_loading_dialog: ^0.3.0
   barcode_scan2: ^4.5.1
+  shorebird_code_push: ^2.0.5
 
 
 dev_dependencies:

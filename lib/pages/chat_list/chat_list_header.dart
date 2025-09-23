@@ -56,7 +56,7 @@ class ChatListHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
               contentPadding: EdgeInsets.zero,
               hintText: hide
-                  ? L10n.of(context).searchChatsRooms
+                  ? L10n.of(context).search
                   : status.calcLocalizedString(context),
               hintStyle: TextStyle(
                 color: status.error != null

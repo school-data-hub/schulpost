@@ -95,6 +95,8 @@ class MatrixState extends State<Matrix> with WidgetsBindingObserver {
     final i = widget.clients.indexWhere((c) => c == cl);
     if (i != -1) {
       _activeClient = i;
+      // TODO: Review if this is the best place to do this
+      AppConfig.setIsTeacher = cl!.userID!.contains('_') ? false : true;
       // TODO: Multi-client VoiP support
       createVoipPlugin();
     } else {

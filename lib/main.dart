@@ -1,4 +1,5 @@
 import 'package:fluffychat/utils/encrypted_credentials/custom_encrypter.dart';
+import 'package:fluffychat/utils/shorebird_updater.dart';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
@@ -17,12 +18,19 @@ import 'widgets/fluffy_chat_app.dart';
 
 final locator = GetIt.instance;
 
-void setupLocator() {
+Future<void> setupLocator() async {
   locator.registerSingletonAsync<CustomEncrypter>(() async {
     final encrypter = await CustomEncrypter.getInstance();
     return encrypter;
   });
+  locator.registerSingletonAsync<ShorebirdUpdateManager>(() async {
+    final manager = ShorebirdUpdateManager();
+    await manager.initialize();
+    return manager;
+  });
+  await locator.allReady();
 }
+
 void main() async {
   Logs().i('Welcome to ${AppConfig.applicationName} <3');
 

@@ -8,7 +8,7 @@ enum CredentialsRole {
   teacher,
   parent,
   student;
-  
+
   // Factory constructor to create enum from JSON string
   factory CredentialsRole.fromJson(String json) {
     return CredentialsRole.values.firstWhere(
@@ -16,7 +16,7 @@ enum CredentialsRole {
       orElse: () => throw ArgumentError('Invalid role: $json'),
     );
   }
-  
+
   // Method to convert enum to JSON
   String toJson() => name;
 }
@@ -33,8 +33,6 @@ class ScannedCredentials {
     required this.role,
     required this.homeServer,
   });
-
-
 }
 
 Future<ScannedCredentials?> getScannedCredentials(
@@ -72,13 +70,9 @@ ScannedCredentials? generateCredentials(
   late final String homeServer;
   late final String passwordKey;
 
-  if (decryptedString.startsWith('1')) {
-    isTeacher = true;
-    mxId = decryptedString.substring(1).split('*').first;
-  } else {
-    isTeacher = false;
-    mxId = decryptedString.split('*').first;
-  }
+  isTeacher = decryptedString.contains('_') ? false : true;
+  final role = isTeacher ? CredentialsRole.teacher : CredentialsRole.student;
+  mxId = decryptedString.split('*').first;
   passwordKey = decryptedString.split('*').last.trim();
 
   final startIndex = mxId.indexOf(':');
@@ -89,7 +83,7 @@ ScannedCredentials? generateCredentials(
   return ScannedCredentials(
     userId: userId,
     passwordKey: passwordKey,
-    role: CredentialsRole.teacher,
+    role: role,
     homeServer: homeServer,
   );
 }

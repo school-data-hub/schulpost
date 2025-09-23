@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/config/setting_keys.dart';
+import 'package:fluffychat/main.dart';
+import 'package:fluffychat/utils/shorebird_updater.dart';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
@@ -29,7 +31,8 @@ class Settings extends StatefulWidget {
 class SettingsController extends State<Settings> {
   Future<Profile>? profileFuture;
   bool profileUpdated = false;
-
+  final ShorebirdUpdateManager updateManager =
+      locator<ShorebirdUpdateManager>();
   void updateProfile() => setState(() {
         profileUpdated = true;
         profileFuture = null;

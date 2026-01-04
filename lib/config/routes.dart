@@ -8,6 +8,7 @@ import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/pages/archive/archive.dart';
+import 'package:fluffychat/pages/bootstrap/bootstrap_dialog.dart';
 import 'package:fluffychat/pages/chat/chat.dart';
 import 'package:fluffychat/pages/chat_access_settings/chat_access_settings_controller.dart';
 import 'package:fluffychat/pages/chat_details/chat_details.dart';
@@ -26,7 +27,6 @@ import 'package:fluffychat/pages/settings_3pid/settings_3pid.dart';
 import 'package:fluffychat/pages/settings_chat/settings_chat.dart';
 import 'package:fluffychat/pages/settings_emotes/settings_emotes.dart';
 import 'package:fluffychat/pages/settings_ignore_list/settings_ignore_list.dart';
-import 'package:fluffychat/pages/settings_multiple_emotes/settings_multiple_emotes.dart';
 import 'package:fluffychat/pages/settings_notifications/settings_notifications.dart';
 import 'package:fluffychat/pages/settings_password/settings_password.dart';
 import 'package:fluffychat/pages/settings_security/settings_security.dart';
@@ -96,18 +96,21 @@ abstract class AppRoutes {
     ),
     GoRoute(
       path: '/logs',
-      pageBuilder: (context, state) => defaultPageBuilder(
-        context,
-        state,
-        const LogViewer(),
-      ),
+      pageBuilder: (context, state) =>
+          defaultPageBuilder(context, state, const LogViewer()),
     ),
     GoRoute(
       path: '/configs',
+      pageBuilder: (context, state) =>
+          defaultPageBuilder(context, state, const ConfigViewer()),
+    ),
+    GoRoute(
+      path: '/backup',
+      redirect: loggedOutRedirect,
       pageBuilder: (context, state) => defaultPageBuilder(
         context,
         state,
-        const ConfigViewer(),
+        BootstrapDialog(wipe: state.uri.queryParameters['wipe'] == 'true'),
       ),
     ),
     ShellRoute(
@@ -122,6 +125,7 @@ abstract class AppRoutes {
             ? TwoColumnLayout(
                 mainView: ChatList(
                   activeChat: state.pathParameters['roomid'],
+                  activeSpace: state.uri.queryParameters['spaceId'],
                   displayNavigationRail:
                       state.path?.startsWith('/rooms/settings') != true,
                 ),
@@ -140,16 +144,14 @@ abstract class AppRoutes {
                 ? const EmptyPage()
                 : ChatList(
                     activeChat: state.pathParameters['roomid'],
+                    activeSpace: state.uri.queryParameters['spaceId'],
                   ),
           ),
           routes: [
             GoRoute(
               path: 'archive',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const Archive(),
-              ),
+              pageBuilder: (context, state) =>
+                  defaultPageBuilder(context, state, const Archive()),
               routes: [
                 GoRoute(
                   path: ':roomid',
@@ -168,20 +170,14 @@ abstract class AppRoutes {
             ),
             GoRoute(
               path: 'newprivatechat',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const NewPrivateChat(),
-              ),
+              pageBuilder: (context, state) =>
+                  defaultPageBuilder(context, state, const NewPrivateChat()),
               redirect: loggedOutRedirect,
             ),
             GoRoute(
               path: 'newgroup',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const NewGroup(),
-              ),
+              pageBuilder: (context, state) =>
+                  defaultPageBuilder(context, state, const NewGroup()),
               redirect: loggedOutRedirect,
             ),
             GoRoute(
@@ -233,7 +229,9 @@ abstract class AppRoutes {
                   pageBuilder: (context, state) => defaultPageBuilder(
                     context,
                     state,
-                    const EmotesSettings(),
+                    EmotesSettings(
+                      roomId: state.pathParameters['roomid'],
+                    ),
                   ),
                 ),
               ],
@@ -331,9 +329,7 @@ abstract class AppRoutes {
                   pageBuilder: (context, state) => defaultPageBuilder(
                     context,
                     state,
-                    ChatSearchPage(
-                      roomId: state.pathParameters['roomid']!,
-                    ),
+                    ChatSearchPage(roomId: state.pathParameters['roomid']!),
                   ),
                   redirect: loggedOutRedirect,
                 ),
@@ -362,9 +358,7 @@ abstract class AppRoutes {
                   pageBuilder: (context, state) => defaultPageBuilder(
                     context,
                     state,
-                    ChatDetails(
-                      roomId: state.pathParameters['roomid']!,
-                    ),
+                    ChatDetails(roomId: state.pathParameters['roomid']!),
                   ),
                   routes: [
                     GoRoute(
@@ -410,29 +404,11 @@ abstract class AppRoutes {
                       redirect: loggedOutRedirect,
                     ),
                     GoRoute(
-                      path: 'multiple_emotes',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const MultipleEmotesSettings(),
-                      ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
                       path: 'emotes',
                       pageBuilder: (context, state) => defaultPageBuilder(
                         context,
                         state,
-                        const EmotesSettings(),
-                      ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'emotes/:state_key',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const EmotesSettings(),
+                        EmotesSettings(roomId: state.pathParameters['roomid']),
                       ),
                       redirect: loggedOutRedirect,
                     ),

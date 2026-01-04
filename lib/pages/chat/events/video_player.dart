@@ -6,6 +6,7 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/utils/file_description.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/event_extension.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
@@ -34,8 +35,10 @@ class EventVideoPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final supportsVideoPlayer = PlatformInfos.supportsVideoPlayer;
 
-    final blurHash = (event.infoMap as Map<String, dynamic>)
-            .tryGet<String>('xyz.amorgan.blurhash') ??
+    final blurHash =
+        (event.infoMap as Map<String, dynamic>).tryGet<String>(
+          'xyz.amorgan.blurhash',
+        ) ??
         fallbackBlurHash;
     final fileDescription = event.fileDescription;
     const maxDimension = 300.0;
@@ -48,11 +51,12 @@ class EventVideoPlayer extends StatelessWidget {
     final height = videoHeight / modifier;
 
     final durationInt = infoMap?.tryGet<int>('duration');
-    final duration =
-        durationInt == null ? null : Duration(milliseconds: durationInt);
+    final duration = durationInt == null
+        ? null
+        : Duration(milliseconds: durationInt);
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: .min,
       spacing: 8,
       children: [
         Material(
@@ -127,23 +131,22 @@ class EventVideoPlayer extends StatelessWidget {
           SizedBox(
             width: width,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Linkify(
                 text: fileDescription,
                 textScaleFactor: MediaQuery.textScalerOf(context).scale(1),
                 style: TextStyle(
                   color: textColor,
                   fontSize:
-                      AppConfig.fontSizeFactor * AppConfig.messageFontSize,
+                      AppSettings.fontSizeFactor.value *
+                      AppConfig.messageFontSize,
                 ),
                 options: const LinkifyOptions(humanize: false),
                 linkStyle: TextStyle(
                   color: linkColor,
                   fontSize:
-                      AppConfig.fontSizeFactor * AppConfig.messageFontSize,
+                      AppSettings.fontSizeFactor.value *
+                      AppConfig.messageFontSize,
                   decoration: TextDecoration.underline,
                   decorationColor: linkColor,
                 ),

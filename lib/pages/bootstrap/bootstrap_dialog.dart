@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:matrix/encryption.dart';
 import 'package:matrix/matrix.dart';
 
@@ -12,27 +13,19 @@ import 'package:fluffychat/utils/error_reporter.dart';
 import 'package:fluffychat/utils/fluffy_share.dart';
 import 'package:fluffychat/utils/localized_exception_extension.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
+import 'package:fluffychat/utils/sync_status_localization.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_ok_cancel_alert_dialog.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../utils/adaptive_bottom_sheet.dart';
+import 'package:fluffychat/widgets/layouts/login_scaffold.dart';
+import 'package:fluffychat/widgets/matrix.dart';
 import '../key_verification/key_verification_dialog.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 class BootstrapDialog extends StatefulWidget {
   final bool wipe;
-  final Client client;
 
-  const BootstrapDialog({
-    super.key,
-    this.wipe = false,
-    required this.client,
-  });
-
-  Future<bool?> show(BuildContext context) => showAdaptiveBottomSheet(
-        context: context,
-        builder: (context) => this,
-      );
+  const BootstrapDialog({super.key, this.wipe = false});
 
   @override
   BootstrapDialogState createState() => BootstrapDialogState();
@@ -42,7 +35,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
   final TextEditingController _recoveryKeyTextEditingController =
       TextEditingController();
 
-  late Bootstrap bootstrap;
+  Bootstrap? bootstrap;
 
   String? _recoveryKeyInputError;
 
@@ -58,7 +51,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
   bool? _wipe;
 
   String get _secureStorageKey =>
-      'ssss_recovery_key_${bootstrap.client.userID}';
+      'ssss_recovery_key_${bootstrap!.client.userID}';
 
   bool get _supportsSecureStorage =>
       PlatformInfos.isMobile || PlatformInfos.isDesktop;
@@ -73,18 +66,66 @@ class BootstrapDialogState extends State<BootstrapDialog> {
     return L10n.of(context).storeSecurlyOnThisDevice;
   }
 
+  late final Client client;
+
   @override
   void initState() {
-    _createBootstrap(widget.wipe);
     super.initState();
+    client = Matrix.of(context).client;
+    _createBootstrap(widget.wipe);
+  }
+
+  void _cancelAction() async {
+    final consent = await showOkCancelAlertDialog(
+      context: context,
+      title: L10n.of(context).skipChatBackup,
+      message: L10n.of(context).skipChatBackupWarning,
+      okLabel: L10n.of(context).skip,
+      isDestructive: true,
+    );
+    if (consent != OkCancelResult.ok) return;
+    if (!mounted) return;
+    _goBackAction(false);
+  }
+
+  void _goBackAction(bool success) {
+    if (success) _decryptLastEvents();
+
+    context.canPop() ? context.pop(success) : context.go('/rooms');
+  }
+
+  void _decryptLastEvents() async {
+    for (final room in client.rooms) {
+      final event = room.lastEvent;
+      if (event != null &&
+          event.type == EventTypes.Encrypted &&
+          event.messageType == MessageTypes.BadEncrypted &&
+          event.content['can_request_session'] == true) {
+        final sessionId = event.content.tryGet<String>('session_id');
+        final senderKey = event.content.tryGet<String>('sender_key');
+        if (sessionId != null && senderKey != null) {
+          room.client.encryption?.keyManager.maybeAutoRequest(
+            room.id,
+            sessionId,
+            senderKey,
+          );
+        }
+      }
+    }
   }
 
   void _createBootstrap(bool wipe) async {
+    await client.roomsLoading;
+    await client.accountDataLoading;
+    await client.userDeviceKeysLoading;
+    while (client.prevBatch == null) {
+      await client.onSync.stream.first;
+    }
+    await client.updateUserDeviceKeys();
     _wipe = wipe;
     titleText = null;
     _recoveryKeyStored = false;
-    bootstrap =
-        widget.client.encryption!.bootstrap(onUpdate: (_) => setState(() {}));
+    bootstrap = client.encryption!.bootstrap(onUpdate: (_) => setState(() {}));
     final key = await const FlutterSecureStorage().read(key: _secureStorageKey);
     if (key == null) return;
     _recoveryKeyTextEditingController.text = key;
@@ -93,9 +134,35 @@ class BootstrapDialogState extends State<BootstrapDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bootstrap = this.bootstrap;
+    if (bootstrap == null) {
+      return LoginScaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          leading: CloseButton(onPressed: _cancelAction),
+          title: Text(L10n.of(context).loadingMessages),
+        ),
+        body: Center(
+          child: StreamBuilder(
+            stream: client.onSyncStatus.stream,
+            builder: (context, snapshot) {
+              final status = snapshot.data;
+              return Column(
+                mainAxisAlignment: .center,
+                children: [
+                  CircularProgressIndicator.adaptive(value: status?.progress),
+                  if (status != null) Text(status.calcLocalizedString(context)),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    }
+
     _wipe ??= widget.wipe;
     final buttons = <Widget>[];
-    Widget body = const CircularProgressIndicator.adaptive();
+    Widget body = const Center(child: CircularProgressIndicator.adaptive());
     titleText = L10n.of(context).loadingPleaseWait;
 
     if (bootstrap.newSsssKey?.recoveryKey != null &&
@@ -104,19 +171,17 @@ class BootstrapDialogState extends State<BootstrapDialog> {
       titleText = L10n.of(context).recoveryKey;
       final qrCodeSize =
           min(MediaQuery.of(context).size.width - 16, 256).toDouble();
-      return Scaffold(
+      return LoginScaffold(
         appBar: AppBar(
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: Navigator.of(context).pop,
-          ),
+          leading: CloseButton(onPressed: _cancelAction),
           title: Text(L10n.of(context).recoveryKey),
         ),
         body: Center(
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: FluffyThemes.columnWidth * 1.5),
+            constraints: const BoxConstraints(
+              maxWidth: FluffyThemes.columnWidth * 1.5,
+            ),
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
@@ -168,8 +233,9 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                       });
                     },
                     title: Text(_getSecureStorageLocalizedName()),
-                    subtitle:
-                        Text(L10n.of(context).storeInSecureStorageDescription),
+                    subtitle: Text(
+                      L10n.of(context).storeInSecureStorageDescription,
+                    ),
                   ),
                 const SizedBox(height: 16),
                 CheckboxListTile.adaptive(
@@ -189,16 +255,16 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                   label: Text(L10n.of(context).next),
                   onPressed:
                       (_recoveryKeyCopied || _storeInSecureStorage == true)
-                          ? () {
-                              if (_storeInSecureStorage == true) {
-                                const FlutterSecureStorage().write(
-                                  key: _secureStorageKey,
-                                  value: key,
-                                );
-                              }
-                              setState(() => _recoveryKeyStored = true);
-                            }
-                          : null,
+                      ? () {
+                          if (_storeInSecureStorage == true) {
+                            const FlutterSecureStorage().write(
+                              key: _secureStorageKey,
+                              value: key,
+                            );
+                          }
+                          setState(() => _recoveryKeyStored = true);
+                        }
+                      : null,
                 ),
               ],
             ),
@@ -236,14 +302,11 @@ class BootstrapDialogState extends State<BootstrapDialog> {
           break;
         case BootstrapState.openExistingSsss:
           _recoveryKeyStored = true;
-          return Scaffold(
+          return LoginScaffold(
             appBar: AppBar(
               centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: Navigator.of(context).pop,
-              ),
-              title: Text(L10n.of(context).chatBackup),
+              leading: CloseButton(onPressed: _cancelAction),
+              title: Text(L10n.of(context).setupChatBackup),
             ),
             body: Center(
               child: ConstrainedBox(
@@ -254,8 +317,9 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                   padding: const EdgeInsets.all(16.0),
                   children: [
                     ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 8.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
                       trailing: Icon(
                         Icons.info_outlined,
                         color: theme.colorScheme.primary,
@@ -319,28 +383,23 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                                   Logs().v(
                                     'Cross signing is already enabled. Try to self-sign',
                                   );
-                                  try {
-                                    await bootstrap
-                                        .client.encryption!.crossSigning
-                                        .selfSign(recoveryKey: key);
-                                    Logs().d('Successful selfsigned');
-                                  } catch (e, s) {
-                                    Logs().e(
-                                      'Unable to self sign with recovery key after successfully open existing SSSS',
-                                      e,
-                                      s,
-                                    );
-                                  }
+                                  await bootstrap
+                                      .client
+                                      .encryption!
+                                      .crossSigning
+                                      .selfSign(recoveryKey: key);
+                                  Logs().d('Successful selfsigned');
                                 }
                               } on InvalidPassphraseException catch (e) {
                                 setState(
-                                  () => _recoveryKeyInputError =
-                                      e.toLocalizedString(context),
+                                  () => _recoveryKeyInputError = e
+                                      .toLocalizedString(context),
                                 );
                               } on FormatException catch (_) {
                                 setState(
-                                  () => _recoveryKeyInputError =
-                                      L10n.of(context).wrongRecoveryKey,
+                                  () => _recoveryKeyInputError = L10n.of(
+                                    context,
+                                  ).wrongRecoveryKey,
                                 );
                               } catch (e, s) {
                                 ErrorReporter(
@@ -348,8 +407,8 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                                   'Unable to open SSSS with recovery key',
                                 ).onErrorCallback(e, s);
                                 setState(
-                                  () => _recoveryKeyInputError =
-                                      e.toLocalizedString(context),
+                                  () => _recoveryKeyInputError = e
+                                      .toLocalizedString(context),
                                 );
                               } finally {
                                 setState(
@@ -379,8 +438,9 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                               final consent = await showOkCancelAlertDialog(
                                 context: context,
                                 title: L10n.of(context).verifyOtherDevice,
-                                message: L10n.of(context)
-                                    .verifyOtherDeviceDescription,
+                                message: L10n.of(
+                                  context,
+                                ).verifyOtherDeviceDescription,
                                 okLabel: L10n.of(context).ok,
                                 cancelLabel: L10n.of(context).cancel,
                               );
@@ -389,16 +449,39 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                                 context: context,
                                 delay: false,
                                 future: () async {
-                                  await widget.client.updateUserDeviceKeys();
-                                  return widget.client
-                                      .userDeviceKeys[widget.client.userID!]!
+                                  await client.updateUserDeviceKeys();
+                                  return client.userDeviceKeys[client.userID!]!
                                       .startVerification();
                                 },
                               );
                               if (req.error != null) return;
-                              await KeyVerificationDialog(request: req.result!)
-                                  .show(context);
-                              Navigator.of(context, rootNavigator: false).pop();
+                              final success = await KeyVerificationDialog(
+                                request: req.result!,
+                              ).show(context);
+                              if (success != true) return;
+                              if (!mounted) return;
+
+                              final result = await showFutureLoadingDialog(
+                                context: context,
+                                future: () async {
+                                  final allCached =
+                                      await client.encryption!.keyManager
+                                          .isCached() &&
+                                      await client.encryption!.crossSigning
+                                          .isCached();
+                                  if (!allCached) {
+                                    await client
+                                        .encryption!
+                                        .ssss
+                                        .onSecretStored
+                                        .stream
+                                        .first;
+                                  }
+                                  return;
+                                },
+                              );
+                              if (!mounted) return;
+                              if (!result.isError) _goBackAction(true);
                             },
                     ),
                     const SizedBox(height: 16),
@@ -462,8 +545,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
           body = const Icon(Icons.error_outline, color: Colors.red, size: 80);
           buttons.add(
             ElevatedButton(
-              onPressed: () =>
-                  Navigator.of(context, rootNavigator: false).pop<bool>(false),
+              onPressed: () => _goBackAction(false),
               child: Text(L10n.of(context).close),
             ),
           );
@@ -471,7 +553,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
         case BootstrapState.done:
           titleText = L10n.of(context).everythingReady;
           body = Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: .min,
             children: [
               const Icon(
                 Icons.check_circle_rounded,
@@ -488,8 +570,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
           );
           buttons.add(
             ElevatedButton(
-              onPressed: () =>
-                  Navigator.of(context, rootNavigator: false).pop<bool>(false),
+              onPressed: () => _goBackAction(true),
               child: Text(L10n.of(context).close),
             ),
           );
@@ -497,27 +578,18 @@ class BootstrapDialogState extends State<BootstrapDialog> {
       }
     }
 
-    return Scaffold(
+    return LoginScaffold(
       appBar: AppBar(
-        leading: Center(
-          child: CloseButton(
-            onPressed: () =>
-                Navigator.of(context, rootNavigator: false).pop<bool>(true),
-          ),
-        ),
+        leading: CloseButton(onPressed: _cancelAction),
         title: Text(titleText ?? L10n.of(context).loadingPleaseWait),
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              body,
-              const SizedBox(height: 8),
-              ...buttons,
-            ],
+            mainAxisSize: .min,
+            crossAxisAlignment: .stretch,
+            children: [body, const SizedBox(height: 8), ...buttons],
           ),
         ),
       ),

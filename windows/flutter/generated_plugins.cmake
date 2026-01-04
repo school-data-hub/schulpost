@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   desktop_drop
+  desktop_webview_window
   dynamic_color
   emoji_picker_flutter
   file_selector_windows
@@ -14,9 +15,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
   permission_handler_windows
   record_windows
+  screen_retriever_windows
   share_plus
   sqlcipher_flutter_libs
   url_launcher_windows
+  webcrypto
+  window_manager
   window_to_front
 )
 

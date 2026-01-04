@@ -2,13 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:collection/collection.dart';
-import 'package:flutter_highlighter/flutter_highlighter.dart';
-import 'package:flutter_highlighter/themes/shades-of-purple.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:highlight/highlight.dart' show highlight;
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
 import 'package:matrix/matrix.dart';
 
+import 'package:fluffychat/utils/code_highlight_theme.dart';
 import 'package:fluffychat/utils/event_checkbox_extension.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
@@ -86,9 +86,9 @@ class HtmlMessage extends StatelessWidget {
     'rt',
     'html',
     'body',
-    // Workaround for https://github.com/krille-chan/fluffychat/issues/507
-    'tg-forward',
   };
+
+  static const Set<String> ignoredHtmlTags = {'mx-reply'};
 
   /// We add line breaks before these tags:
   static const Set<String> blockHtmlTags = {
@@ -137,17 +137,31 @@ class HtmlMessage extends StatelessWidget {
     ];
   }
 
+  InlineSpan _renderCodeBlockNode(dom.Node node) {
+    if (node is! dom.Element) {
+      return TextSpan(text: node.text);
+    }
+    final style = atomOneDarkTheme[node.className.split('-').last] ??
+        atomOneDarkTheme['root'];
+
+    return TextSpan(
+      children: node.nodes.map(_renderCodeBlockNode).toList(),
+      style: style,
+    );
+  }
+
   /// Transforms a Node to an InlineSpan.
-  InlineSpan _renderHtml(
-    dom.Node node,
-    BuildContext context, {
-    int depth = 1,
-  }) {
+  InlineSpan _renderHtml(dom.Node node, BuildContext context, {int depth = 1}) {
     // We must not render elements nested more than 100 elements deep:
     if (depth >= 100) return const TextSpan();
 
-    // This is a text node, so we render it as text:
-    if (node is! dom.Element) {
+    if (node is dom.Element &&
+        ignoredHtmlTags.contains(node.localName?.toLowerCase())) {
+      return const TextSpan();
+    }
+
+    // This is a text node or not permitted node, so we render it as text:
+    if (node is! dom.Element || !allowedHtmlTags.contains(node.localName)) {
       var text = node.text ?? '';
       // Single linebreak nodes between Elements are ignored:
       if (text == '\n') text = '';
@@ -159,9 +173,6 @@ class HtmlMessage extends StatelessWidget {
         onOpen: onOpen,
       );
     }
-
-    // We must not render tags which are not in the allow list:
-    if (!allowedHtmlTags.contains(node.localName)) return const TextSpan();
 
     switch (node.localName) {
       case 'br':
@@ -251,13 +262,15 @@ class HtmlMessage extends StatelessWidget {
             child: Text.rich(
               TextSpan(
                 children: [
-                  if (node.parent?.localName == 'ul')
-                    const TextSpan(text: '• '),
-                  if (node.parent?.localName == 'ol')
-                    TextSpan(
-                      text:
-                          '${(node.parent?.nodes.whereType<dom.Element>().toList().indexOf(node) ?? 0) + (int.tryParse(node.parent?.attributes['start'] ?? '1') ?? 1)}. ',
-                    ),
+                  if (!isCheckbox) ...[
+                    if (node.parent?.localName == 'ul')
+                      const TextSpan(text: '• '),
+                    if (node.parent?.localName == 'ol')
+                      TextSpan(
+                        text:
+                            '${(node.parent?.nodes.whereType<dom.Element>().toList().indexOf(node) ?? 0) + (int.tryParse(node.parent?.attributes['start'] ?? '1') ?? 1)}. ',
+                      ),
+                  ],
                   if (node.className == 'task-list-item')
                     WidgetSpan(
                       child: Padding(
@@ -293,11 +306,7 @@ class HtmlMessage extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ..._renderWithLineBreaks(
-                    node.nodes,
-                    context,
-                    depth: depth,
-                  ),
+                  ..._renderWithLineBreaks(node.nodes, context, depth: depth),
                 ],
                 style: TextStyle(fontSize: fontSize, color: textColor),
               ),
@@ -309,12 +318,7 @@ class HtmlMessage extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.only(left: 8.0),
             decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color: textColor,
-                  width: 5,
-                ),
-              ),
+              border: Border(left: BorderSide(color: textColor, width: 5)),
             ),
             child: Text.rich(
               TextSpan(
@@ -334,31 +338,35 @@ class HtmlMessage extends StatelessWidget {
         );
       case 'code':
         final isInline = node.parent?.localName != 'pre';
+        final lang = node.className
+                .split(' ')
+                .singleWhereOrNull(
+                  (className) => className.startsWith('language-'),
+                )
+                ?.split('language-')
+                .last ??
+            'md';
+        final highlightedHtml =
+            highlight.parse(node.text, language: lang).toHtml();
+        final element = parser.parse(highlightedHtml).body;
+        if (element == null) {
+          return const TextSpan(text: 'Unable to render code block!');
+        }
+
         return WidgetSpan(
           child: Material(
-            clipBehavior: Clip.hardEdge,
-            borderRadius: BorderRadius.circular(4),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: HighlightView(
-                node.text,
-                language: node.className
-                        .split(' ')
-                        .singleWhereOrNull(
-                          (className) => className.startsWith('language-'),
-                        )
-                        ?.split('language-')
-                        .last ??
-                    'md',
-                theme: shadesOfPurpleTheme,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: isInline ? 0 : 8,
-                ),
-                textStyle: TextStyle(
-                  fontSize: fontSize,
-                  fontFamily: 'RobotoMono',
-                ),
+            color: atomOneBackgroundColor,
+            shape: RoundedRectangleBorder(
+              side: const BorderSide(color: hightlightTextColor),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Padding(
+              padding: isInline
+                  ? const EdgeInsets.symmetric(horizontal: 4.0)
+                  : const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Text.rich(
+                TextSpan(children: [_renderCodeBlockNode(element)]),
+                selectionColor: hightlightTextColor.withAlpha(128),
               ),
             ),
           ),
@@ -426,10 +434,7 @@ class HtmlMessage extends StatelessWidget {
                       ),
                   ],
                 ),
-                style: TextStyle(
-                  fontSize: fontSize,
-                  color: textColor,
-                ),
+                style: TextStyle(fontSize: fontSize, color: textColor),
               ),
             ),
           ),
@@ -467,17 +472,13 @@ class HtmlMessage extends StatelessWidget {
       default:
         return TextSpan(
           style: switch (node.localName) {
-            'body' => TextStyle(
-                fontSize: fontSize,
-                color: textColor,
-              ),
+            'body' => TextStyle(fontSize: fontSize, color: textColor),
             'a' => linkStyle,
             'strong' => const TextStyle(fontWeight: FontWeight.bold),
             'em' || 'i' => const TextStyle(fontStyle: FontStyle.italic),
-            'del' ||
-            's' ||
-            'strikethrough' =>
-              const TextStyle(decoration: TextDecoration.lineThrough),
+            'del' || 's' || 'strikethrough' => const TextStyle(
+                decoration: TextDecoration.lineThrough,
+              ),
             'u' => const TextStyle(decoration: TextDecoration.underline),
             'h1' => TextStyle(
                 fontSize: fontSize * 2.0,
@@ -508,16 +509,13 @@ class HtmlMessage extends StatelessWidget {
                 backgroundColor:
                     node.attributes['data-mx-bg-color']?.hexToColor,
               ),
-            'sup' =>
-              const TextStyle(fontFeatures: [FontFeature.superscripts()]),
+            'sup' => const TextStyle(
+                fontFeatures: [FontFeature.superscripts()],
+              ),
             'sub' => const TextStyle(fontFeatures: [FontFeature.subscripts()]),
             _ => null,
           },
-          children: _renderWithLineBreaks(
-            node.nodes,
-            context,
-            depth: depth,
-          ),
+          children: _renderWithLineBreaks(node.nodes, context, depth: depth),
         );
     }
   }
@@ -527,12 +525,10 @@ class HtmlMessage extends StatelessWidget {
     final element = parser.parse(html).body ?? dom.Element.html('');
     return Text.rich(
       _renderHtml(element, context),
-      style: TextStyle(
-        fontSize: fontSize,
-        color: textColor,
-      ),
+      style: TextStyle(fontSize: fontSize, color: textColor),
       maxLines: limitHeight ? 64 : null,
       overflow: TextOverflow.fade,
+      selectionColor: textColor.withAlpha(128),
     );
   }
 }

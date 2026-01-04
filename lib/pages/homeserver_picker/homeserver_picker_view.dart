@@ -8,21 +8,18 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/adaptive_dialog_action.dart';
 import 'package:fluffychat/widgets/layouts/login_scaffold.dart';
 import 'package:fluffychat/widgets/matrix.dart';
-import '../../config/themes.dart';
 import 'homeserver_picker.dart';
 import 'package:watch_it/watch_it.dart';
 
 class HomeserverPickerView extends WatchingWidget {
   final HomeserverPickerController controller;
 
-  const HomeserverPickerView(
-    this.controller, {
-    super.key,
-  });
+  const HomeserverPickerView(this.controller, {super.key});
 
   @override
   Widget build(BuildContext context) {

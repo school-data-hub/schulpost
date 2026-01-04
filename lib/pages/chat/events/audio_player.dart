@@ -47,6 +47,7 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
   static const double buttonSize = 36;
 
   AudioPlayerStatus status = AudioPlayerStatus.notDownloaded;
+  double? _downloadProgress;
 
   late final MatrixState matrix;
   List<int>? _waveform;
@@ -99,12 +100,13 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                   onPressed: () {
                     audioPlayer.pause();
                     audioPlayer.dispose();
-                    matrix.voiceMessageEventId.value =
-                        matrix.audioPlayer = null;
+                    matrix.voiceMessageEventId.value = matrix.audioPlayer =
+                        null;
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(matrix.context)
-                          .clearMaterialBanners();
+                      ScaffoldMessenger.of(
+                        matrix.context,
+                      ).clearMaterialBanners();
                     });
                   },
                   icon: const Icon(Icons.close_outlined),
@@ -127,8 +129,8 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
     });
     final currentPlayer =
         matrix.voiceMessageEventId.value != widget.event.eventId
-            ? null
-            : matrix.audioPlayer;
+        ? null
+        : matrix.audioPlayer;
     if (currentPlayer != null) {
       if (currentPlayer.isAtEndPosition) {
         currentPlayer.seek(Duration.zero);
@@ -149,7 +151,21 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
 
     setState(() => status = AudioPlayerStatus.downloading);
     try {
-      matrixFile = await widget.event.downloadAndDecryptAttachment();
+      final fileSize = widget.event.content
+          .tryGetMap<String, dynamic>('info')
+          ?.tryGet<int>('size');
+      matrixFile = await widget.event.downloadAndDecryptAttachment(
+        onDownloadProgress: fileSize != null && fileSize > 0
+            ? (progress) {
+                final progressPercentage = progress / fileSize;
+                setState(() {
+                  _downloadProgress = progressPercentage < 1
+                      ? progressPercentage
+                      : null;
+                });
+              }
+            : null,
+      );
 
       if (!kIsWeb) {
         final tempDir = await getTemporaryDirectory();
@@ -176,11 +192,9 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
       });
     } catch (e, s) {
       Logs().v('Could not download audio file', e, s);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toLocalizedString(context)),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toLocalizedString(context))));
       rethrow;
     }
     if (!context.mounted) return;
@@ -195,9 +209,8 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
     }
 
     audioPlayer.play().onError(
-          ErrorReporter(context, 'Unable to play audio message')
-              .onErrorCallback,
-        );
+      ErrorReporter(context, 'Unable to play audio message').onErrorCallback,
+    );
   }
 
   void _toggleSpeed() async {
@@ -275,8 +288,9 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
     return ValueListenableBuilder(
       valueListenable: matrix.voiceMessageEventId,
       builder: (context, eventId, _) {
-        final audioPlayer =
-            eventId != widget.event.eventId ? null : matrix.audioPlayer;
+        final audioPlayer = eventId != widget.event.eventId
+            ? null
+            : matrix.audioPlayer;
 
         final fileDescription = widget.event.fileDescription;
 
@@ -303,15 +317,15 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
             return Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: .min,
+                crossAxisAlignment: .start,
                 children: [
                   ConstrainedBox(
                     constraints: const BoxConstraints(
                       maxWidth: FluffyThemes.columnWidth,
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisSize: .min,
                       children: <Widget>[
                         SizedBox(
                           width: buttonSize,
@@ -320,6 +334,7 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                               ? CircularProgressIndicator(
                                   strokeWidth: 2,
                                   color: widget.color,
+                                  value: _downloadProgress,
                                 )
                               : InkWell(
                                   borderRadius: BorderRadius.circular(64),
@@ -351,9 +366,11 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                                   ),
                                   child: Row(
                                     children: [
-                                      for (var i = 0;
-                                          i < AudioPlayerWidget.wavesCount;
-                                          i++)
+                                      for (
+                                        var i = 0;
+                                        i < AudioPlayerWidget.wavesCount;
+                                        i++
+                                      )
                                         Expanded(
                                           child: Container(
                                             height: 32,
@@ -361,13 +378,14 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                                             child: Container(
                                               margin:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 1,
-                                              ),
+                                                    horizontal: 1,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: i < wavePosition
                                                     ? widget.color
-                                                    : widget.color
-                                                        .withAlpha(128),
+                                                    : widget.color.withAlpha(
+                                                        128,
+                                                      ),
                                                 borderRadius:
                                                     BorderRadius.circular(64),
                                               ),
@@ -381,7 +399,8 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                               SizedBox(
                                 height: 32,
                                 child: Slider(
-                                  thumbColor: widget.event.senderId ==
+                                  thumbColor:
+                                      widget.event.senderId ==
                                           widget.event.room.client.userID
                                       ? theme.colorScheme.onPrimary
                                       : theme.colorScheme.primary,
@@ -410,10 +429,7 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                           width: 36,
                           child: Text(
                             statusText,
-                            style: TextStyle(
-                              color: widget.color,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: widget.color, fontSize: 12),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -427,11 +443,13 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                           ),
                           secondChild: Material(
                             color: widget.color.withAlpha(64),
-                            borderRadius:
-                                BorderRadius.circular(AppConfig.borderRadius),
+                            borderRadius: BorderRadius.circular(
+                              AppConfig.borderRadius,
+                            ),
                             child: InkWell(
-                              borderRadius:
-                                  BorderRadius.circular(AppConfig.borderRadius),
+                              borderRadius: BorderRadius.circular(
+                                AppConfig.borderRadius,
+                              ),
                               onTap: _toggleSpeed,
                               child: SizedBox(
                                 width: 32,
@@ -466,8 +484,9 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                       ),
                       child: Linkify(
                         text: fileDescription,
-                        textScaleFactor:
-                            MediaQuery.textScalerOf(context).scale(1),
+                        textScaleFactor: MediaQuery.textScalerOf(
+                          context,
+                        ).scale(1),
                         style: TextStyle(
                           color: widget.color,
                           fontSize: widget.fontSize,

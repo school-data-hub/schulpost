@@ -508,7 +508,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
                                     cancelLabel: L10n.of(context).cancel,
                                     isDestructive: true,
                                   )) {
-                                setState(() => _createBootstrap(true));
+                                _createBootstrap(true);
                               }
                             },
                     ),

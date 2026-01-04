@@ -2,13 +2,13 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:encrypt/encrypt.dart' as enc;
-import 'package:encrypt/encrypt.dart';
+
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CustomEncrypter {
   final enc.Key key;
-  final IV iv;
+  final enc.IV iv;
 
   CustomEncrypter._(this.key, this.iv);
 
@@ -16,8 +16,9 @@ class CustomEncrypter {
 
   static Future<CustomEncrypter> getInstance() async {
     if (_instance == null) {
-      final keyUtf8 =
-          await rootBundle.loadString('assets/keys/keyaes256cbc.txt');
+      final keyUtf8 = await rootBundle.loadString(
+        'assets/keys/keyaes256cbc.txt',
+      );
       final ivUtf8 = await rootBundle.loadString('assets/keys/ivaes256cbc.txt');
       final key = enc.Key.fromUtf8(keyUtf8);
       final iv = enc.IV.fromUtf8(ivUtf8);
@@ -26,18 +27,15 @@ class CustomEncrypter {
     return _instance!;
   }
 
-  String encrypt({
-    required String nonEncryptedString,
-  }) {
+  String encrypt({required String nonEncryptedString}) {
     final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.cbc));
-    final encryptedString =
-        encrypter.encrypt(nonEncryptedString, iv: iv).base64;
+    final encryptedString = encrypter
+        .encrypt(nonEncryptedString, iv: iv)
+        .base64;
     return encryptedString;
   }
 
-  String decrypt({
-    required String encryptedString,
-  }) {
+  String decrypt({required String encryptedString}) {
     if (encryptedString.isEmpty) {
       return '';
     }
@@ -54,9 +52,7 @@ class CustomEncrypter {
     }
   }
 
-  Future<File> encryptFile({
-    required File file,
-  }) async {
+  Future<File> encryptFile({required File file}) async {
     final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.cbc));
     final List<int> fileBytes = await file.readAsBytes();
     final encrypted = encrypter.encryptBytes(fileBytes, iv: iv);

@@ -20,13 +20,6 @@ abstract class AppConfig {
   static const bool enableRegistration = false;
   static const bool hideTypingUsernames = false;
 
-  static const String inviteLinkPrefix = 'https://matrix.to/#/';
-  static const String deepLinkPrefix = 'im.fluffychat://chat/';
-  static const String schemePrefix = 'matrix:';
-  static const String pushNotificationsChannelId = 'fluffychat_push';
-  static const String pushNotificationsAppId = 'chat.fluffy.fluffychat';
-  static const double borderRadius = 18.0;
-  static const double columnWidth = 360.0;
   static bool get isTeacher => _isTeacher;
   static set setIsTeacher(bool value) {
     _isTeacher = value;
@@ -59,8 +52,6 @@ abstract class AppConfig {
   static const String changelogUrl = 'https://fluffy.chat/en/changelog/';
   static const String donationUrl = 'https://ko-fi.com/krille';
 
-  static const Set<String> defaultReactions = {'👍', '❤️', '😂', '😮', '😢'};
-
   static final Uri newIssueUrl = Uri(
     scheme: 'https',
     host: 'github.com',
@@ -79,7 +70,7 @@ abstract class AppConfig {
   static bool showPresences = true;
   static bool displayNavigationRail = false;
   static bool experimentalVoip = false;
-  static const bool hideTypingUsernames = false;
+
   static const String inviteLinkPrefix = 'https://matrix.to/#/';
   static const String deepLinkPrefix = 'im.fluffychat://chat/';
   static const String schemePrefix = 'matrix:';
@@ -91,12 +82,6 @@ abstract class AppConfig {
     scheme: 'https',
     host: 'servers.joinmatrix.org',
     path: 'servers.json',
-  );
-
-  static final Uri privacyUrl = Uri(
-    scheme: 'https',
-    host: 'fluffy.chat',
-    path: '/en/privacy',
   );
 
   static const String mainIsolatePortName = 'main_isolate';

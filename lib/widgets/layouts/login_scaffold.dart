@@ -102,7 +102,7 @@ class _PrivacyButtons extends StatelessWidget {
               child: Text(L10n.of(context).help, style: shadowTextStyle),
             ),
             TextButton(
-              onPressed: () => launchUrl(AppConfig.privacyUrl),
+              onPressed: () => launchUrl(Uri.parse(AppConfig.privacyUrl)),
               child: Text(L10n.of(context).privacy, style: shadowTextStyle),
             ),
             TextButton(

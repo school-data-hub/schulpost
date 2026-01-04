@@ -169,10 +169,7 @@ class HomeserverPickerController extends State<HomeserverPicker> {
     }
     final client = await Matrix.of(context).getLoginClient();
 
-    context.push(
-      '/home/login',
-      extra: client,
-    );
+    context.push('/home/login', extra: client);
   }
 
   void qrLogin() async {
@@ -182,10 +179,7 @@ class HomeserverPickerController extends State<HomeserverPicker> {
     }
     final client = await Matrix.of(context).getLoginClient();
 
-    context.push(
-      '/home/qrLogin',
-      extra: client,
-    );
+    context.push('/home/qrLogin', extra: client);
   }
 
   @override
@@ -221,7 +215,7 @@ class HomeserverPickerController extends State<HomeserverPicker> {
       case MoreLoginActions.importBackup:
         restoreBackup();
       case MoreLoginActions.privacy:
-        launchUrl(AppConfig.privacyUrl);
+        launchUrl(Uri.parse(AppConfig.privacyUrl));
       case MoreLoginActions.about:
         PlatformInfos.showDialog(context);
     }

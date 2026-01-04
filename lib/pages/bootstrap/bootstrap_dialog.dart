@@ -20,7 +20,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:fluffychat/widgets/layouts/login_scaffold.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import '../key_verification/key_verification_dialog.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+// import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 class BootstrapDialog extends StatefulWidget {
   final bool wipe;
@@ -169,8 +169,10 @@ class BootstrapDialogState extends State<BootstrapDialog> {
         _recoveryKeyStored == false) {
       final key = bootstrap.newSsssKey!.recoveryKey;
       titleText = L10n.of(context).recoveryKey;
-      final qrCodeSize =
-          min(MediaQuery.of(context).size.width - 16, 256).toDouble();
+      final qrCodeSize = min(
+        MediaQuery.of(context).size.width - 16,
+        256,
+      ).toDouble();
       return LoginScaffold(
         appBar: AppBar(
           centerTitle: true,

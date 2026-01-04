@@ -336,9 +336,7 @@ class SettingsStyleView extends StatelessWidget {
               onChanged: controller.changeFontSizeFactor,
             ),
             if (AppConfig.isTeacher) ...[
-              Divider(
-                color: theme.dividerColor,
-              ),
+              Divider(color: theme.dividerColor),
               ListTile(
                 title: Text(
                   L10n.of(context).overview,
@@ -350,23 +348,17 @@ class SettingsStyleView extends StatelessWidget {
               ),
               SettingsSwitchListTile.adaptive(
                 title: L10n.of(context).presencesToggle,
-                onChanged: (b) => AppConfig.showPresences = b,
-                storeKey: SettingKeys.showPresences,
-                defaultValue: AppConfig.showPresences,
+                setting: AppSettings.showPresences,
               ),
               SettingsSwitchListTile.adaptive(
                 title: L10n.of(context).separateChatTypes,
-                onChanged: (b) => AppConfig.separateChatTypes = b,
-                storeKey: SettingKeys.separateChatTypes,
-                defaultValue: AppConfig.separateChatTypes,
+                setting: AppSettings.separateChatTypes,
               ),
               SettingsSwitchListTile.adaptive(
                 title: L10n.of(context).displayNavigationRail,
-                onChanged: (b) => AppConfig.displayNavigationRail = b,
-                storeKey: SettingKeys.displayNavigationRail,
-                defaultValue: AppConfig.displayNavigationRail,
+                setting: AppSettings.displayNavigationRail,
               ),
-            ]
+            ],
           ],
         ),
       ),

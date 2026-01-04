@@ -41,8 +41,9 @@ class NewPrivateChatView extends StatelessWidget {
                 onPressed: () => context.go('/newgroup'),
                 child: Text(
                   L10n.of(context)!.createGroup,
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.secondary),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ),
             ),
@@ -77,12 +78,14 @@ class NewPrivateChatView extends StatelessWidget {
                       child: Stack(
                         children: [
                           Material(
-                            elevation: Theme.of(context)
-                                    .appBarTheme
-                                    .scrolledUnderElevation ??
+                            elevation:
+                                Theme.of(
+                                  context,
+                                ).appBarTheme.scrolledUnderElevation ??
                                 4,
-                            shadowColor:
-                                Theme.of(context).appBarTheme.shadowColor,
+                            shadowColor: Theme.of(
+                              context,
+                            ).appBarTheme.shadowColor,
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
                                 color: Theme.of(context).dividerColor,
@@ -117,7 +120,7 @@ class NewPrivateChatView extends StatelessWidget {
             ),
 
             Expanded(
-              child: AnimatedSwitcher(
+              child: AnimatedCrossFade(
                 duration: FluffyThemes.animationDuration,
                 crossFadeState: searchResponse == null
                     ? CrossFadeState.showFirst
@@ -160,8 +163,9 @@ class NewPrivateChatView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             elevation: 10,
                             color: Colors.white,
-                            shadowColor:
-                                Theme.of(context).appBarTheme.shadowColor,
+                            shadowColor: Theme.of(
+                              context,
+                            ).appBarTheme.shadowColor,
                             clipBehavior: Clip.hardEdge,
                             child: Padding(
                               padding: const EdgeInsets.all(8),
@@ -173,14 +177,15 @@ class NewPrivateChatView extends StatelessWidget {
                                     decoration: PrettyQrDecoration(
                                       shape: PrettyQrSmoothSymbol(
                                         roundFactor: 1,
-                                        color: Theme.of(context).brightness ==
+                                        color:
+                                            Theme.of(context).brightness ==
                                                 Brightness.light
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.primary
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
                                       ),
                                     ),
                                   );
@@ -195,10 +200,12 @@ class NewPrivateChatView extends StatelessWidget {
                     if (AppConfig.isTeacher)
                       ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.tertiaryContainer,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onTertiaryContainer,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onTertiaryContainer,
                           child: const Icon(Icons.group_add_outlined),
                         ),
                         title: Text(L10n.of(context)!.createGroup),
@@ -230,10 +237,12 @@ class NewPrivateChatView extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
                           ),
                           onPressed: () => controller.openScannerAction(),
                           child: const Row(
@@ -321,7 +330,8 @@ class NewPrivateChatView extends StatelessWidget {
                       itemCount: result.length,
                       itemBuilder: (context, i) {
                         final contact = result[i];
-                        final displayname = contact.displayName ??
+                        final displayname =
+                            contact.displayName ??
                             contact.userId.localpart ??
                             contact.userId;
                         return ListTile(
@@ -355,10 +365,7 @@ class NewPrivateChatView extends StatelessWidget {
                 onPressed: () => controller.openContactsRoom(),
                 label: const Text(
                   'KONTAKTE HERMANNSCHULE',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 icon: const Icon(Icons.groups_2_rounded),
               ),

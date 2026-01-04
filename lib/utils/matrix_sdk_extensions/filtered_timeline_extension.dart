@@ -1,3 +1,4 @@
+import 'package:fluffychat/config/app_config.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/setting_keys.dart';
@@ -6,20 +7,19 @@ extension VisibleInGuiExtension on List<Event> {
   List<Event> filterByVisibleInGui({
     String? exceptionEventId,
     String? threadId,
-  }) =>
-      where((event) {
-        if (threadId != null &&
-            event.relationshipType != RelationshipTypes.reaction) {
-          if ((event.relationshipType != RelationshipTypes.thread ||
-                  event.relationshipEventId != threadId) &&
-              event.eventId != threadId) {
-            return false;
-          }
-        } else if (event.relationshipType == RelationshipTypes.thread) {
-          return false;
-        }
-        return event.isVisibleInGui || event.eventId == exceptionEventId;
-      }).toList();
+  }) => where((event) {
+    if (threadId != null &&
+        event.relationshipType != RelationshipTypes.reaction) {
+      if ((event.relationshipType != RelationshipTypes.thread ||
+              event.relationshipEventId != threadId) &&
+          event.eventId != threadId) {
+        return false;
+      }
+    } else if (event.relationshipType == RelationshipTypes.thread) {
+      return false;
+    }
+    return event.isVisibleInGui || event.eventId == exceptionEventId;
+  }).toList();
 }
 
 extension IsStateExtension on Event {
@@ -51,18 +51,18 @@ extension IsStateExtension on Event {
     //EventTypes.CallInvite,
   };
   bool get isState => !{
-        EventTypes.Message,
-        EventTypes.Sticker,
-        EventTypes.Encrypted,
-      }.contains(type);
+    EventTypes.Message,
+    EventTypes.Sticker,
+    EventTypes.Encrypted,
+  }.contains(type);
 
   bool get isCollapsedState => !{
-        EventTypes.Message,
-        EventTypes.Sticker,
-        EventTypes.Encrypted,
-        EventTypes.RoomCreate,
-        EventTypes.RoomTombstone,
-      }.contains(type);
+    EventTypes.Message,
+    EventTypes.Sticker,
+    EventTypes.Encrypted,
+    EventTypes.RoomCreate,
+    EventTypes.RoomTombstone,
+  }.contains(type);
 
   bool get isKnownHiddenStates =>
       {PollEventContent.responseType}.contains(type) ||

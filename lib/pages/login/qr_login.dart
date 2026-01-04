@@ -38,10 +38,14 @@ class QrLoginState extends State<QrLoginScreen> {
   /// makes sure that it is prefixed with https. Then it searches for the
   /// well-known information and forwards to the login page depending on the
   /// login type.
-  Future<void> checkHomeserverAction(
-      {bool legacyPasswordLogin = false, required String homeServer}) async {
-    final homeserverInput =
-        homeServer.trim().toLowerCase().replaceAll(' ', '-');
+  Future<void> checkHomeserverAction({
+    bool legacyPasswordLogin = false,
+    required String homeServer,
+  }) async {
+    final homeserverInput = homeServer.trim().toLowerCase().replaceAll(
+      ' ',
+      '-',
+    );
 
     if (homeserverInput.isEmpty) {
       final client = await Matrix.of(context).getLoginClient();
@@ -65,7 +69,7 @@ class QrLoginState extends State<QrLoginScreen> {
         homeserver = Uri.https(homeserverInput, '');
       }
       final client = await Matrix.of(context).getLoginClient();
-      final (_, _, loginFlows) = await client.checkHomeserver(homeserver);
+      final (_, _, loginFlows, _) = await client.checkHomeserver(homeserver);
       this.loginFlows = loginFlows;
 
       context.push(
@@ -96,9 +100,7 @@ class QrLoginState extends State<QrLoginScreen> {
       // TODO: display an okdialog instead of a snackbar
       showTopSnackBar(
         animationDuration: const Duration(milliseconds: 1600),
-        displayDuration: const Duration(
-          milliseconds: 80,
-        ),
+        displayDuration: const Duration(milliseconds: 80),
         snackBarPosition: SnackBarPosition.bottom,
         dismissDirection: [DismissDirection.horizontal],
         Overlay.of(context),
@@ -109,10 +111,7 @@ class QrLoginState extends State<QrLoginScreen> {
             color: Colors.white,
           ),
           message: 'Fehler beim Scannen des QR-Codes',
-          icon: Icon(
-            Icons.school,
-            color: Color(0xffff5252),
-          ),
+          icon: Icon(Icons.school, color: Color(0xffff5252)),
         ),
       );
       return;
@@ -131,9 +130,7 @@ class QrLoginState extends State<QrLoginScreen> {
       await matrix.store.setBool(SettingKeys.isTeacher, true);
       showTopSnackBar(
         animationDuration: const Duration(milliseconds: 1600),
-        displayDuration: const Duration(
-          milliseconds: 80,
-        ),
+        displayDuration: const Duration(milliseconds: 80),
         snackBarPosition: SnackBarPosition.bottom,
         dismissDirection: [DismissDirection.horizontal],
         Overlay.of(context),
@@ -144,10 +141,7 @@ class QrLoginState extends State<QrLoginScreen> {
             color: Colors.white,
           ),
           message: '🎓️ Lehrkraftmodus ist AKTIVIERT',
-          icon: Icon(
-            Icons.school,
-            color: Color(0xff00E676),
-          ),
+          icon: Icon(Icons.school, color: Color(0xff00E676)),
         ),
       );
     }
@@ -328,20 +322,18 @@ class QrLoginState extends State<QrLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mit QR-Scan einloggen'),
-      ),
+      appBar: AppBar(title: const Text('Mit QR-Scan einloggen')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(
-              child: Image.asset(loginScanImage),
-            ),
+            Expanded(child: Image.asset(loginScanImage)),
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Text(
                 loginScanMessage,
                 style: const TextStyle(fontSize: 18),
@@ -358,19 +350,16 @@ class QrLoginState extends State<QrLoginScreen> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onPrimary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       onPressed: loginWithScan,
-                      icon: const Icon(
-                        Icons.qr_code_rounded,
-                      ),
-                      label: Text(
-                        L10n.of(context).scanQrCode.toUpperCase(),
-                      ),
+                      icon: const Icon(Icons.qr_code_rounded),
+                      label: Text(L10n.of(context).scanQrCode.toUpperCase()),
                     ),
                   ),
                 ),

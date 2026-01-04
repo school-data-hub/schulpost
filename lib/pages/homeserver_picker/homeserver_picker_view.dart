@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fluffychat/config/themes.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -23,13 +24,10 @@ class HomeserverPickerView extends WatchingWidget {
 
   @override
   Widget build(BuildContext context) {
-    final versionSnapshot = createOnceAsync<String>(
-      () async {
-        final packageInfo = await PackageInfo.fromPlatform();
-        return packageInfo.version;
-      },
-      initialValue: '...',
-    );
+    final versionSnapshot = createOnceAsync<String>(() async {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    }, initialValue: '...');
 
     final theme = Theme.of(context);
 
@@ -96,7 +94,7 @@ class HomeserverPickerView extends WatchingWidget {
                     // usually forced to logout as TOR browser is non-persistent
                     const Padding(padding: EdgeInsets.only(top: 16.0)),
                     AnimatedContainer(
-                      height: controller.isTorBrowser ? 64 : 0,
+                      height: 0,
                       duration: FluffyThemes.animationDuration,
                       curve: FluffyThemes.animationCurve,
                       clipBehavior: Clip.hardEdge,
@@ -257,10 +255,12 @@ class HomeserverPickerView extends WatchingWidget {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),

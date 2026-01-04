@@ -40,8 +40,7 @@ enum PopupMenuAction {
   archive,
 }
 
-enum ActiveFilter { allChats, messages, groups, unread, spaces   settings,
-}
+enum ActiveFilter { allChats, messages, groups, unread, spaces, settings }
 
 extension LocalizedActiveFilter on ActiveFilter {
   String toLocalizedString(BuildContext context) {
@@ -88,7 +87,7 @@ class ChatListController extends State<ChatList>
   StreamSubscription? _intentUriStreamSubscription;
 
   //late ActiveFilter activeFilter;
-    ActiveFilter activeFilter = AppConfig.separateChatTypes
+  ActiveFilter activeFilter = AppConfig.separateChatTypes
       ? ActiveFilter.messages
       : ActiveFilter.allChats;
 
@@ -137,50 +136,50 @@ class ChatListController extends State<ChatList>
     }
   }
 
-  bool get displayNavigationBar => true;
+  //bool get displayNavigationBar => true;
   // !FluffyThemes.isColumnMode(context) &&
   // (spaces.isNotEmpty || AppConfig.separateChatTypes);
 
-  int get selectedIndex {
-    switch (activeFilter) {
-      case ActiveFilter.allChats:
-        return 0;
-      case ActiveFilter.groups:
-        return 1;
-      case ActiveFilter.settings:
-        return AppConfig.separateChatTypes ? 2 : 1;
-      default:
-        return 0;
-    }
-  }
+  // int get selectedIndex {
+  //   switch (activeFilter) {
+  //     case ActiveFilter.allChats:
+  //       return 0;
+  //     case ActiveFilter.groups:
+  //       return 1;
+  //     case ActiveFilter.settings:
+  //       return AppConfig.separateChatTypes ? 2 : 1;
+  //     default:
+  //       return 0;
+  //   }
+  // }
 
-  ActiveFilter getActiveFilterByDestination(int? i) {
-    switch (i) {
-      case 2:
-        return ActiveFilter.settings;
-      case 1:
-        return ActiveFilter.groups;
-      case 0:
-      default:
-        return ActiveFilter.allChats;
-    }
-  }
+  // ActiveFilter getActiveFilterByDestination(int? i) {
+  //   switch (i) {
+  //     case 2:
+  //       return ActiveFilter.settings;
+  //     case 1:
+  //       return ActiveFilter.groups;
+  //     case 0:
+  //     default:
+  //       return ActiveFilter.allChats;
+  //   }
+  // }
 
-  void onDestinationSelected(int? i) {
-    if (i == 2) {
-      setState(() {
-        activeFilter = ActiveFilter.settings;
-      });
-    } else if (i == 1) {
-      setState(() {
-        activeFilter = ActiveFilter.groups;
-      });
-    } else {
-      setState(() {
-        activeFilter = getActiveFilterByDestination(i);
-      });
-    }
-  }
+  // void onDestinationSelected(int? i) {
+  //   if (i == 2) {
+  //     setState(() {
+  //       activeFilter = ActiveFilter.settings;
+  //     });
+  //   } else if (i == 1) {
+  //     setState(() {
+  //       activeFilter = ActiveFilter.groups;
+  //     });
+  //   } else {
+  //     setState(() {
+  //       activeFilter = getActiveFilterByDestination(i);
+  //     });
+  //   }
+  // }
 
   String? _activeSpaceId;
   String? get activeSpaceId => _activeSpaceId;
@@ -338,8 +337,9 @@ class ChatListController extends State<ChatList>
 
       if (searchQuery.isValidMatrixId &&
           searchQuery.sigil == '#' &&
-          allRoomsSearchResult.chunk
-                  .any((room) => room.canonicalAlias == searchQuery) ==
+          allRoomsSearchResult.chunk.any(
+                (room) => room.canonicalAlias == searchQuery,
+              ) ==
               false) {
         final response = await client.getRoomIdByAlias(searchQuery);
         final roomId = response.roomId;

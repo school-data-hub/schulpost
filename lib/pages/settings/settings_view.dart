@@ -104,9 +104,7 @@ class SettingsView extends StatelessWidget {
                                   displayname,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                  ),
+                                  style: const TextStyle(fontSize: 18),
                                 ),
                                 if (AppConfig.isTeacher)
                                   TextButton.icon(
@@ -132,14 +130,19 @@ class SettingsView extends StatelessWidget {
                                   children: [
                                     if (AppConfig.isTeacher)
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 4.0),
+                                        padding: const EdgeInsets.only(
+                                          right: 4.0,
+                                        ),
                                         child: Container(
                                           width: 30.0,
                                           height: 30.0,
                                           decoration: const BoxDecoration(
                                             color: Color.fromARGB(
-                                                229, 232, 212, 253),
+                                              229,
+                                              232,
+                                              212,
+                                              253,
+                                            ),
                                             shape: BoxShape.circle,
                                           ),
                                           child: const Center(
@@ -157,7 +160,11 @@ class SettingsView extends StatelessWidget {
                                         height: 30.0,
                                         decoration: const BoxDecoration(
                                           color: Color.fromARGB(
-                                              229, 232, 212, 253),
+                                            229,
+                                            232,
+                                            212,
+                                            253,
+                                          ),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Center(
@@ -174,7 +181,11 @@ class SettingsView extends StatelessWidget {
                                         height: 30.0,
                                         decoration: const BoxDecoration(
                                           color: Color.fromARGB(
-                                              229, 232, 212, 253),
+                                            229,
+                                            232,
+                                            212,
+                                            253,
+                                          ),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Center(
@@ -271,7 +282,7 @@ class SettingsView extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.privacy_tip_outlined),
                     title: Text(L10n.of(context).privacy),
-                    onTap: () => launchUrl(AppConfig.privacyUrl),
+                    onTap: () => launchUrl(Uri.parse(AppConfig.privacyUrl)),
                   ),
                   ListTile(
                     leading: const Icon(Icons.info_outline_rounded),
@@ -281,7 +292,8 @@ class SettingsView extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.build_outlined),
                     title: Text(
-                        'Patch Level:  ${controller.updateManager.currentPatch?.number.toString() ?? "0"}'),
+                      'Patch Level:  ${controller.updateManager.currentPatch?.number.toString() ?? "0"}',
+                    ),
                   ),
                   Divider(color: theme.dividerColor),
                   ListTile(

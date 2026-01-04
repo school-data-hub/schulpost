@@ -12,7 +12,9 @@ class SettingsPasswordView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(L10n.of(context)!.changePassword)  actions: [
+      appBar: AppBar(
+        title: Text(L10n.of(context).changePassword),
+        actions: [
           TextButton(
             child: Text(L10n.of(context)!.passwordRecoverySettings),
             onPressed: () => context.go('/rooms/settings/security/3pid'),
@@ -37,7 +39,7 @@ class SettingsPasswordView extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: controller.loading
                     ? null
-                        : controller.changePassword,
+                    : controller.changePassword,
                 icon: const Icon(Icons.send_outlined),
                 label: controller.loading
                     ? const LinearProgressIndicator()

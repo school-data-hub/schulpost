@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/encrypted_credentials/scanned_credentials.dart';
-import 'package:fluffychat/utils/localized_exception_extension.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:flutter/material.dart';
-import 'package:fluffychat/l10n/l10n.dart';
-import 'package:go_router/go_router.dart';
 import 'package:matrix/matrix.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -16,7 +13,7 @@ import '../../config/setting_keys.dart';
 import '../../utils/platform_infos.dart';
 
 class QrLoginScreen extends StatefulWidget {
-  const QrLoginScreen({r, super.key});
+  const QrLoginScreen({super.key});
 
   @override
   QrLoginState createState() => QrLoginState();
@@ -38,57 +35,57 @@ class QrLoginState extends State<QrLoginScreen> {
   /// makes sure that it is prefixed with https. Then it searches for the
   /// well-known information and forwards to the login page depending on the
   /// login type.
-  Future<void> checkHomeserverAction({
-    bool legacyPasswordLogin = false,
-    required String homeServer,
-  }) async {
-    final homeserverInput = homeServer.trim().toLowerCase().replaceAll(
-      ' ',
-      '-',
-    );
+  // Future<void> checkHomeserverAction({
+  //   bool legacyPasswordLogin = false,
+  //   required String homeServer,
+  // }) async {
+  //   final homeserverInput = homeServer.trim().toLowerCase().replaceAll(
+  //     ' ',
+  //     '-',
+  //   );
 
-    if (homeserverInput.isEmpty) {
-      final client = await Matrix.of(context).getLoginClient();
-      setState(() {
-        error = loginFlows = null;
-        isLoading = false;
-        client.homeserver = null;
-      });
-      return;
-    }
-    setState(() {
-      error = loginFlows = null;
-      isLoading = true;
-    });
+  //   if (homeserverInput.isEmpty) {
+  //     final client = await Matrix.of(context).getLoginClient();
+  //     setState(() {
+  //       error = loginFlows = null;
+  //       isLoading = false;
+  //       client.homeserver = null;
+  //     });
+  //     return;
+  //   }
+  //   setState(() {
+  //     error = loginFlows = null;
+  //     isLoading = true;
+  //   });
 
-    final l10n = L10n.of(context);
+  //   final l10n = L10n.of(context);
 
-    try {
-      var homeserver = Uri.parse(homeserverInput);
-      if (homeserver.scheme.isEmpty) {
-        homeserver = Uri.https(homeserverInput, '');
-      }
-      final client = await Matrix.of(context).getLoginClient();
-      final (_, _, loginFlows, _) = await client.checkHomeserver(homeserver);
-      this.loginFlows = loginFlows;
+  //   try {
+  //     var homeserver = Uri.parse(homeserverInput);
+  //     if (homeserver.scheme.isEmpty) {
+  //       homeserver = Uri.https(homeserverInput, '');
+  //     }
+  //     final client = await Matrix.of(context).getLoginClient();
+  //     final (_, _, loginFlows, _) = await client.checkHomeserver(homeserver);
+  //     this.loginFlows = loginFlows;
 
-      context.push(
-        '${GoRouter.of(context).routeInformationProvider.value.uri.path}/login',
-        extra: client,
-      );
-    } catch (e) {
-      setState(
-        () => error = (e).toLocalizedString(
-          context,
-          ExceptionContext.checkHomeserver,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
-    }
-  }
+  //     context.push(
+  //       '${GoRouter.of(context).routeInformationProvider.value.uri.path}/login',
+  //       extra: client,
+  //     );
+  //   } catch (e) {
+  //     setState(
+  //       () => error = (e).toLocalizedString(
+  //         context,
+  //         ExceptionContext.checkHomeserver,
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
 
   void loginWithScan() async {
     final matrix = Matrix.of(context);

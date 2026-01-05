@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class QrAuthModal extends StatefulWidget {
@@ -54,7 +53,7 @@ class QrAuthModalState extends State<QrAuthModal> {
     );
   }
 
-  _onQRViewCreated(QRViewController controller) {
+  void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     // Workaround for QR Scanner is started in Pause mode
     // https://github.com/juliuscanute/qr_code_scanner/issues/538#issuecomment-1133883828

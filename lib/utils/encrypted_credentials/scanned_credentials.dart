@@ -35,9 +35,7 @@ class ScannedCredentials {
   });
 }
 
-Future<ScannedCredentials?> getScannedCredentials(
-  BuildContext context,
-) async {
+Future<ScannedCredentials?> getScannedCredentials(BuildContext context) async {
   final encryptedQrCredentials = await showModalBottomSheet<String>(
     isScrollControlled: false,
     isDismissible: false,
@@ -46,15 +44,17 @@ Future<ScannedCredentials?> getScannedCredentials(
   );
 
   if (encryptedQrCredentials == null) return null;
-  final scannedCredentials = generateCredentials(
+  final scannedCredentials = _generateCredentials(
     encryptedCredentials: encryptedQrCredentials,
     context: context,
   );
   return scannedCredentials;
 }
 
-ScannedCredentials? generateCredentials(
-    {required String encryptedCredentials, required BuildContext context}) {
+ScannedCredentials? _generateCredentials({
+  required String encryptedCredentials,
+  required BuildContext context,
+}) {
   final encrypter = locator<CustomEncrypter>();
   final decryptedString = encrypter.decrypt(
     encryptedString: encryptedCredentials,

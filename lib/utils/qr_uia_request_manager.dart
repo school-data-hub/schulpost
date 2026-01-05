@@ -2,36 +2,39 @@ import 'dart:async';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/utils/qr_auth_modal.dart';
+import 'package:fluffychat/widgets/fluffy_chat_app.dart';
+import 'package:fluffychat/widgets/matrix.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:matrix/matrix.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-
-import 'package:fluffychat/widgets/matrix.dart';
-
-import 'package:encrypt/encrypt.dart' as enc;
+import 'package:url_launcher/url_launcher.dart';
 
 extension QrUiaRequestManager on MatrixState {
   Future qrUiaRequestHandler(UiaRequest uiaRequest) async {
-    final l10n = L10n.of(context)!;
+    final l10n = L10n.of(context);
+    final navigatorContext =
+        FluffyChatApp.router.routerDelegate.navigatorKey.currentContext ??
+        context;
     try {
       if (uiaRequest.state != UiaRequestState.waitForUser ||
           uiaRequest.nextStages.isEmpty) {
-        Logs().d('Uia Request Stage: ${uiaRequest.state}');
+        Logs().d('QR Uia Request Stage returned: ${uiaRequest.state}');
         return;
       }
-      final stage = uiaRequest.nextStages.first;
-      Logs().d('Uia Request Stage: $stage');
+      final stage = uiaRequest.nextStages.last;
+      Logs().d('QR first Uia Request Stage: $stage');
       switch (stage) {
         case AuthenticationTypes.password:
-          final keyutf8 =
-              await rootBundle.loadString('assets/keys/keyaes256cbc.txt');
-          final ivutf8 =
-              await rootBundle.loadString('assets/keys/ivaes256cbc.txt');
+          final keyutf8 = await rootBundle.loadString(
+            'assets/keys/keyaes256cbc.txt',
+          );
+          final ivutf8 = await rootBundle.loadString(
+            'assets/keys/ivaes256cbc.txt',
+          );
           final key = enc.Key.fromUtf8(keyutf8);
           final iv = enc.IV.fromUtf8(ivutf8);
           if (PlatformInfos.isAndroid) {
@@ -39,9 +42,7 @@ extension QrUiaRequestManager on MatrixState {
             if (info.version.sdkInt < 21) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    L10n.of(context)!.unsupportedAndroidVersionLong,
-                  ),
+                  content: Text(L10n.of(context).unsupportedAndroidVersionLong),
                 ),
               );
               return;
@@ -50,7 +51,7 @@ extension QrUiaRequestManager on MatrixState {
           final qrKeyEncrypted = await showModalBottomSheet<String>(
             isScrollControlled: false,
             isDismissible: false,
-            context: context,
+            context: navigatorContext,
             builder: (_) => const QrAuthModal(),
           );
           final encryptedLoginID = enc.Encrypted.fromBase64(qrKeyEncrypted!);
@@ -58,9 +59,10 @@ extension QrUiaRequestManager on MatrixState {
           final myloginID = encrypter.decrypt(encryptedLoginID, iv: iv);
           final qrKey = myloginID.split('*').last.trim().substring(0, 8);
 
-          final pin = cachedPassword ??
+          final pin =
+              cachedPassword ??
               (await showTextInputDialog(
-                context: context,
+                context: navigatorContext,
                 title: l10n.pleaseEnterYourPassword,
                 okLabel: l10n.ok,
                 cancelLabel: l10n.cancel,
@@ -73,8 +75,7 @@ extension QrUiaRequestManager on MatrixState {
                     keyboardType: TextInputType.number,
                   ),
                 ],
-              ))
-                  ?.single;
+              ))?.single;
           if (pin == null || pin.isEmpty || qrKey.isEmpty) {
             return uiaRequest.cancel();
           }
@@ -88,24 +89,37 @@ extension QrUiaRequestManager on MatrixState {
           );
 
         default:
-          final url = Uri.parse(
-            '${client.homeserver}/_matrix/client/r0/auth/$stage/fallback/web?session=${uiaRequest.session}',
+          final stageUrl = uiaRequest.params
+              .tryGetMap<String, Object?>(stage)
+              ?.tryGet<String>('url');
+          final fallbackUrl = client.homeserver!.replace(
+            path: '/_matrix/client/v3/auth/$stage/fallback/web',
+            queryParameters: {'session': uiaRequest.session},
           );
-          launchUrlString(url.toString());
-          if (OkCancelResult.ok ==
-              await showOkCancelAlertDialog(
-                useRootNavigator: false,
-                message: l10n.pleaseFollowInstructionsOnWeb,
-                context: context,
-                okLabel: l10n.next,
-                cancelLabel: l10n.cancel,
-              )) {
-            return uiaRequest.completeStage(
-              AuthenticationData(session: uiaRequest.session),
-            );
-          } else {
-            return uiaRequest.cancel();
-          }
+          final url = stageUrl != null
+              ? (Uri.tryParse(stageUrl) ?? fallbackUrl)
+              : fallbackUrl;
+
+          final consent = await showOkCancelAlertDialog(
+            useRootNavigator: false,
+            title: l10n.pleaseFollowInstructionsOnWeb,
+            context: navigatorContext,
+            okLabel: l10n.open,
+            cancelLabel: l10n.cancel,
+          );
+          if (consent != OkCancelResult.ok) return uiaRequest.cancel();
+
+          launchUrl(url, mode: LaunchMode.inAppBrowserView);
+          final completer = Completer();
+          final listener = AppLifecycleListener(
+            onResume: () => completer.complete(),
+          );
+          await completer.future;
+          listener.dispose();
+
+          return uiaRequest.completeStage(
+            AuthenticationData(session: uiaRequest.session),
+          );
       }
     } catch (e, s) {
       Logs().e('Error while background UIA', e, s);

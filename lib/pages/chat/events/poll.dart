@@ -1,15 +1,13 @@
-import 'package:flutter/material.dart';
-
 import 'package:async/async.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:matrix/matrix.dart' hide Result;
-
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/url_launcher.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:matrix/matrix.dart' hide Result;
 
 class PollWidget extends StatelessWidget {
   final Event event;
@@ -153,24 +151,27 @@ class PollWidget extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 2),
-                                ...votedUserIds.map((userId) {
-                                  final user = event.room
-                                      .getState(EventTypes.RoomMember, userId)
-                                      ?.asUser(event.room);
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 2.0,
-                                    ),
-                                    child: Avatar(
-                                      mxContent: user?.avatarUrl,
-                                      name:
-                                          user?.calcDisplayname() ??
-                                          userId.localpart,
-                                      size:
-                                          12 * AppSettings.fontSizeFactor.value,
-                                    ),
-                                  );
-                                }),
+                                if (eventContent.pollStartContent.kind ==
+                                    PollKind.disclosed)
+                                  ...votedUserIds.map((userId) {
+                                    final user = event.room
+                                        .getState(EventTypes.RoomMember, userId)
+                                        ?.asUser(event.room);
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 2.0,
+                                      ),
+                                      child: Avatar(
+                                        mxContent: user?.avatarUrl,
+                                        name:
+                                            user?.calcDisplayname() ??
+                                            userId.localpart,
+                                        size:
+                                            12 *
+                                            AppSettings.fontSizeFactor.value,
+                                      ),
+                                    );
+                                  }),
                                 const SizedBox(width: 2),
                               ],
                             ),

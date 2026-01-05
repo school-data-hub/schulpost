@@ -1,7 +1,6 @@
 import 'package:fluffychat/config/app_config.dart';
-import 'package:matrix/matrix.dart';
-
 import 'package:fluffychat/config/setting_keys.dart';
+import 'package:matrix/matrix.dart';
 
 extension VisibleInGuiExtension on List<Event> {
   List<Event> filterByVisibleInGui({
@@ -54,6 +53,7 @@ extension IsStateExtension on Event {
     EventTypes.Message,
     EventTypes.Sticker,
     EventTypes.Encrypted,
+    PollEventContent.startType,
   }.contains(type);
 
   bool get isCollapsedState => !{
@@ -62,6 +62,7 @@ extension IsStateExtension on Event {
     EventTypes.Encrypted,
     EventTypes.RoomCreate,
     EventTypes.RoomTombstone,
+    PollEventContent.startType,
   }.contains(type);
 
   bool get isKnownHiddenStates =>

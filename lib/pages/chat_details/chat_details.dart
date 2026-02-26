@@ -166,7 +166,6 @@ class ChatDetailsController extends State<ChatDetails> {
   Timer? _coolDown;
 
   void _search() async {
-    final client = Matrix.of(context).client;
     if (!isSearching) {
       setState(() {
         isSearching = true;
@@ -199,8 +198,11 @@ class ChatDetailsController extends State<ChatDetails> {
     setState(() {
       isSearchMode = true;
       filteredMembers = members!
-          .where((user) =>
-              user.calcDisplayname().toLowerCase().contains(text.toLowerCase()))
+          .where(
+            (user) => user.calcDisplayname().toLowerCase().contains(
+              text.toLowerCase(),
+            ),
+          )
           .toList();
     });
 
@@ -215,8 +217,9 @@ class ChatDetailsController extends State<ChatDetails> {
     members ??= client.getRoomById(roomId!)!.getParticipants();
     filteredMembers ??= List.from(members!);
     final thisCanInvite = client.getRoomById(roomId!)?.canInvite;
-    final thisPowerLevel =
-        client.getRoomById(roomId!)?.getPowerLevelByUserId(userId!);
+    final thisPowerLevel = client
+        .getRoomById(roomId!)
+        ?.getPowerLevelByUserId(userId!);
     setState(() {
       powerlevel = thisPowerLevel!;
       canInvite = thisCanInvite!;

@@ -396,12 +396,12 @@ class ChatDetailsView extends StatelessWidget {
                                           AppConfig.borderRadius,
                                         ),
                                       ),
-                                      hintText: L10n.of(context)!.search,
+                                      hintText: L10n.of(context).search,
                                       floatingLabelBehavior:
                                           FloatingLabelBehavior.never,
                                       prefixIcon: controller.isSearchMode
                                           ? IconButton(
-                                              tooltip: L10n.of(context)!.cancel,
+                                              tooltip: L10n.of(context).cancel,
                                               icon: const Icon(
                                                 Icons.close_outlined,
                                               ),

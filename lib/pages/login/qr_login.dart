@@ -119,30 +119,6 @@ class QrLoginState extends State<QrLoginScreen> {
       loginScanMessage = 'Scan erfolgreich!\n \nAnmeldung wird versucht...';
     });
 
-    // set teacher mode if necessary
-
-    if (scannedCredentials.role == CredentialsRole.teacher) {
-      AppConfig.setIsTeacher = true;
-
-      await matrix.store.setBool(SettingKeys.isTeacher, true);
-      showTopSnackBar(
-        animationDuration: const Duration(milliseconds: 1600),
-        displayDuration: const Duration(milliseconds: 80),
-        snackBarPosition: SnackBarPosition.bottom,
-        dismissDirection: [DismissDirection.horizontal],
-        Overlay.of(context),
-        const CustomSnackBar.success(
-          textStyle: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-          message: '🎓️ Lehrkraftmodus ist AKTIVIERT',
-          icon: Icon(Icons.school, color: Color(0xff00E676)),
-        ),
-      );
-    }
-
     // get pin from users
 
     final pin = await enterText();
@@ -181,6 +157,32 @@ class QrLoginState extends State<QrLoginScreen> {
         password: password,
         initialDeviceDisplayName: PlatformInfos.clientName,
       );
+      // set teacher mode if necessary
+
+      if (scannedCredentials.role == CredentialsRole.teacher) {
+        AppConfig.setIsTeacher = true;
+
+        await matrix.store.setBool(SettingKeys.isTeacher, true);
+        showTopSnackBar(
+          animationDuration: const Duration(milliseconds: 1600),
+          displayDuration: const Duration(milliseconds: 80),
+          snackBarPosition: SnackBarPosition.bottom,
+          dismissDirection: [DismissDirection.horizontal],
+          Overlay.of(context),
+          const CustomSnackBar.success(
+            textStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+            message: '🎓️ Lehrkraftmodus ist AKTIVIERT',
+            icon: Icon(Icons.school, color: Color(0xff00E676)),
+          ),
+        );
+      } else {
+        AppConfig.setIsTeacher = false;
+        await matrix.store.setBool(SettingKeys.isTeacher, false);
+      }
     } on MatrixException catch (exception) {
       // on exception, show error message
       String authErrorMessage = exception.errorMessage;

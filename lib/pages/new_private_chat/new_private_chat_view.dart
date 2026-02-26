@@ -31,7 +31,7 @@ class NewPrivateChatView extends StatelessWidget {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         leading: const Center(child: BackButton()),
-        title: Text(L10n.of(context)!.newChat),
+        title: Text(L10n.of(context).newChat),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
           if (AppConfig.isTeacher == true)
@@ -40,7 +40,7 @@ class NewPrivateChatView extends StatelessWidget {
               child: TextButton(
                 onPressed: () => context.go('/newgroup'),
                 child: Text(
-                  L10n.of(context)!.createGroup,
+                  L10n.of(context).createGroup,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.secondary,
                   ),
@@ -62,7 +62,7 @@ class NewPrivateChatView extends StatelessWidget {
               builder: (context, snapshot) {
                 final profile = snapshot.data;
                 final mxid =
-                    Matrix.of(context).client.userID ?? L10n.of(context)!.user;
+                    Matrix.of(context).client.userID ?? L10n.of(context).user;
                 final displayname =
                     profile?.displayName ?? mxid.localpart ?? mxid;
                 return Row(
@@ -134,7 +134,7 @@ class NewPrivateChatView extends StatelessWidget {
                           TextSpan(
                             children: [
                               TextSpan(
-                                text: L10n.of(context)!.yourGlobalUserIdIs,
+                                text: L10n.of(context).yourGlobalUserIdIs,
                               ),
                               TextSpan(
                                 text: Matrix.of(context).client.userID,
@@ -208,7 +208,7 @@ class NewPrivateChatView extends StatelessWidget {
                           ).colorScheme.onTertiaryContainer,
                           child: const Icon(Icons.group_add_outlined),
                         ),
-                        title: Text(L10n.of(context)!.createGroup),
+                        title: Text(L10n.of(context).createGroup),
                         onTap: () => context.go('/rooms/newgroup'),
                       ),
                     if (PlatformInfos.isMobile)
@@ -296,7 +296,7 @@ class NewPrivateChatView extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: controller.searchUsers,
                             icon: const Icon(Icons.refresh_outlined),
-                            label: Text(L10n.of(context)!.tryAgain),
+                            label: Text(L10n.of(context).tryAgain),
                           ),
                         ],
                       );
@@ -314,7 +314,7 @@ class NewPrivateChatView extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Text(
-                              L10n.of(context)!.noUsersFoundWithQuery(
+                              L10n.of(context).noUsersFoundWithQuery(
                                 controller.controller.text,
                               ),
                               style: TextStyle(

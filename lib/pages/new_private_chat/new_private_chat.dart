@@ -10,13 +10,11 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/new_private_chat/new_private_chat_view.dart';
-import 'package:fluffychat/pages/new_private_chat/qr_scanner_modal.dart';
-import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/fluffy_share.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/utils/url_launcher.dart';
 import 'package:fluffychat/widgets/matrix.dart';
-import '../../widgets/adaptive_dialogs/user_dialog.dart';
+import 'package:fluffychat/widgets/adaptive_dialogs/user_dialog.dart';
 
 class NewPrivateChat extends StatefulWidget {
   const NewPrivateChat({super.key});
@@ -116,31 +114,30 @@ class NewPrivateChatController extends State<NewPrivateChat> {
     // );
   }
 
-  void useInvitation(encryptedScan) async {
+  void useInvitation(String encryptedScan) async {
     // Ensure encrypter is initialized
-    if (encrypter == null) {
-      encrypter = await CustomEncrypter.getInstance();
-    }
+    encrypter ??= await CustomEncrypter.getInstance();
 
-    String decryptedString = encrypter!.decrypt(
-      encryptedString: encryptedScan,
-    );
+    var decryptedString = encrypter!.decrypt(encryptedString: encryptedScan);
 
     if (decryptedString.startsWith('1')) {
       decryptedString = decryptedString.substring(1);
     }
-    int starIndex = decryptedString.indexOf(':');
+    final starIndex = decryptedString.indexOf(':');
     if (starIndex != -1) {
       decryptedString = decryptedString.substring(0, starIndex);
     }
     UrlLauncher(
-            context, 'https://matrix.to/#/@$decryptedString:hermannschule.de')
-        .openMatrixToUrl();
+      context,
+      'https://matrix.to/#/@$decryptedString:hermannschule.de',
+    ).openMatrixToUrl();
   }
 
   Future<void> openContactsRoom([_]) async {
-    UrlLauncher(context, 'https://matrix.to/#/#kontakte:hermannschule.de')
-        .openMatrixToUrl();
+    UrlLauncher(
+      context,
+      'https://matrix.to/#/#kontakte:hermannschule.de',
+    ).openMatrixToUrl();
   }
 
   Future<String> generateQrData() async {

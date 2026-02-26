@@ -125,11 +125,11 @@ flutter:
     - shorebird.yaml
 
 msix_config:
-  display_name: FluffyChat
-  publisher_display_name: FluffyChat
-  publisher: CN=FluffyChat, O=Head of bad integration tests, L=Matrix, S=Internet, C=EU
+  display_name: Hermannpost
+  publisher_display_name: Hermannpost
+  publisher: CN=Hermannpost, O=Head of bad integration tests, L=Matrix, S=Internet, C=EU
   identity_name: de.hermannschule.hermannpost
-  logo_path: assets\logo.png
+  logo_path: assets\icons\icon.png
   capabilities: internetClient, location, microphone, webcam
   protocol_activation: https
   app_uri_handler_hosts: fluffychat.im, matrix.to
@@ -137,7 +137,6 @@ msix_config:
   sign_msix: false
   install_certificate: false
 
-dependency_overrides:
 flutter_launcher_icons:
   ios: true
   android: true

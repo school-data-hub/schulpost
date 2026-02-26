@@ -75,7 +75,7 @@ class ChatView extends StatelessWidget {
           IconButton(
             icon: Image.asset('assets/hp-warning.png', scale: 8),
             onPressed: () => controller.reportEventAction(),
-            tooltip: L10n.of(context)!.pinMessage,
+            tooltip: L10n.of(context).pinMessage,
           ),
         // PopupMenuButton<_EventContextAction>(
         //   useRootNavigator: true,

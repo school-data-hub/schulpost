@@ -1,11 +1,5 @@
-import 'package:flutter/material.dart';
-
-import 'package:go_router/go_router.dart';
-import 'package:matrix/matrix.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/fluffy_share.dart';
@@ -13,6 +7,14 @@ import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:fluffychat/widgets/navigation_rail.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:matrix/matrix.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
 import '../../widgets/mxc_image_viewer.dart';
 import 'settings.dart';
 
@@ -100,11 +102,55 @@ class SettingsView extends StatelessWidget {
                               mainAxisAlignment: .center,
                               crossAxisAlignment: .start,
                               children: [
-                                Text(
-                                  displayname,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 18),
+                                InkWell(
+                                  onLongPress: () async {
+                                    if (AppConfig.isTeacher) {
+                                      AppConfig.setIsTeacher = false;
+                                      await Matrix.of(context).store.setBool(
+                                        SettingKeys.isTeacher,
+                                        false,
+                                      );
+                                      showTopSnackBar(
+                                        animationDuration: const Duration(
+                                          milliseconds: 1600,
+                                        ),
+                                        displayDuration: const Duration(
+                                          milliseconds: 80,
+                                        ),
+                                        snackBarPosition:
+                                            SnackBarPosition.bottom,
+                                        dismissDirection: [
+                                          DismissDirection.horizontal,
+                                        ],
+                                        Overlay.of(context),
+                                        const CustomSnackBar.success(
+                                          textStyle: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                            color: Colors.white,
+                                          ),
+                                          message:
+                                              '🎓️ Lehrkraftmodus ist AKTIVIERT',
+                                          icon: Icon(
+                                            Icons.school,
+                                            color: Color(0xff00E676),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      AppConfig.setIsTeacher = false;
+                                      await Matrix.of(context).store.setBool(
+                                        SettingKeys.isTeacher,
+                                        false,
+                                      );
+                                    }
+                                  },
+                                  child: Text(
+                                    displayname,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
                                 ),
                                 if (AppConfig.isTeacher)
                                   TextButton.icon(

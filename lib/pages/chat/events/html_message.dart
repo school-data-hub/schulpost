@@ -1,18 +1,17 @@
+import 'package:collection/collection.dart';
+import 'package:fluffychat/utils/code_highlight_theme.dart';
+import 'package:fluffychat/utils/event_checkbox_extension.dart';
+import 'package:fluffychat/widgets/avatar.dart';
+import 'package:fluffychat/widgets/future_loading_dialog.dart';
+import 'package:fluffychat/widgets/mxc_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'package:collection/collection.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:highlight/highlight.dart' show highlight;
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
 import 'package:matrix/matrix.dart';
 
-import 'package:fluffychat/utils/code_highlight_theme.dart';
-import 'package:fluffychat/utils/event_checkbox_extension.dart';
-import 'package:fluffychat/widgets/avatar.dart';
-import 'package:fluffychat/widgets/future_loading_dialog.dart';
-import 'package:fluffychat/widgets/mxc_image.dart';
 import '../../../utils/url_launcher.dart';
 
 class HtmlMessage extends StatelessWidget {
@@ -141,7 +140,8 @@ class HtmlMessage extends StatelessWidget {
     if (node is! dom.Element) {
       return TextSpan(text: node.text);
     }
-    final style = atomOneDarkTheme[node.className.split('-').last] ??
+    final style =
+        atomOneDarkTheme[node.className.split('-').last] ??
         atomOneDarkTheme['root'];
 
     return TextSpan(
@@ -243,9 +243,9 @@ class HtmlMessage extends StatelessWidget {
         final isCheckbox = node.className == 'task-list-item';
         final checkboxIndex = isCheckbox
             ? node.rootElement
-                    .getElementsByClassName('task-list-item')
-                    .indexOf(node) +
-                1
+                      .getElementsByClassName('task-list-item')
+                      .indexOf(node) +
+                  1
             : null;
         final checkedByReaction = !isCheckbox
             ? null
@@ -283,7 +283,8 @@ class HtmlMessage extends StatelessWidget {
                             activeColor: textColor.withAlpha(64),
                             value:
                                 staticallyChecked || checkedByReaction != null,
-                            onChanged: eventId == null ||
+                            onChanged:
+                                eventId == null ||
                                     checkboxIndex == null ||
                                     staticallyChecked ||
                                     !room.canSendDefaultMessages ||
@@ -292,16 +293,16 @@ class HtmlMessage extends StatelessWidget {
                                             room.client.userID)
                                 ? null
                                 : (_) => showFutureLoadingDialog(
-                                      context: context,
-                                      future: () => checkedByReaction != null
-                                          ? room.redactEvent(
-                                              checkedByReaction.eventId,
-                                            )
-                                          : room.checkCheckbox(
-                                              eventId,
-                                              checkboxIndex,
-                                            ),
-                                    ),
+                                    context: context,
+                                    future: () => checkedByReaction != null
+                                        ? room.redactEvent(
+                                            checkedByReaction.eventId,
+                                          )
+                                        : room.checkCheckbox(
+                                            eventId,
+                                            checkboxIndex,
+                                          ),
+                                  ),
                           ),
                         ),
                       ),
@@ -338,7 +339,8 @@ class HtmlMessage extends StatelessWidget {
         );
       case 'code':
         final isInline = node.parent?.localName != 'pre';
-        final lang = node.className
+        final lang =
+            node.className
                 .split(' ')
                 .singleWhereOrNull(
                   (className) => className.startsWith('language-'),
@@ -346,8 +348,9 @@ class HtmlMessage extends StatelessWidget {
                 ?.split('language-')
                 .last ??
             'md';
-        final highlightedHtml =
-            highlight.parse(node.text, language: lang).toHtml();
+        final highlightedHtml = highlight
+            .parse(node.text, language: lang)
+            .toHtml();
         final element = parser.parse(highlightedHtml).body;
         if (element == null) {
           return const TextSpan(text: 'Unable to render code block!');
@@ -477,41 +480,41 @@ class HtmlMessage extends StatelessWidget {
             'strong' => const TextStyle(fontWeight: FontWeight.bold),
             'em' || 'i' => const TextStyle(fontStyle: FontStyle.italic),
             'del' || 's' || 'strikethrough' => const TextStyle(
-                decoration: TextDecoration.lineThrough,
-              ),
+              decoration: TextDecoration.lineThrough,
+            ),
             'u' => const TextStyle(decoration: TextDecoration.underline),
             'h1' => TextStyle(
-                fontSize: fontSize * 2.0,
-                height: 2,
-                fontWeight: FontWeight.w600,
-              ),
+              fontSize: fontSize * 2.0,
+              height: 1.8,
+              fontWeight: FontWeight.w600,
+            ),
             'h2' => TextStyle(
-                fontSize: fontSize * 1.75,
-                height: 2,
-                fontWeight: FontWeight.w600,
-              ),
+              fontSize: fontSize * 1.75,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
             'h3' => TextStyle(
-                fontSize: fontSize * 1.5,
-                height: 2,
-                fontWeight: FontWeight.w600,
-              ),
+              fontSize: fontSize * 1.5,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
             'h4' => TextStyle(
-                fontSize: fontSize * 1.25,
-                height: 1.75,
-                fontWeight: FontWeight.w600,
-              ),
+              fontSize: fontSize * 1.25,
+              height: 1.75,
+              fontWeight: FontWeight.w600,
+            ),
             'h5' => TextStyle(fontSize: fontSize * 1.25, height: 1.75),
             'h6' => TextStyle(fontSize: fontSize * 1.1, height: 1.5),
             'span' => TextStyle(
-                color: node.attributes['color']?.hexToColor ??
-                    node.attributes['data-mx-color']?.hexToColor ??
-                    textColor,
-                backgroundColor:
-                    node.attributes['data-mx-bg-color']?.hexToColor,
-              ),
+              color:
+                  node.attributes['color']?.hexToColor ??
+                  node.attributes['data-mx-color']?.hexToColor ??
+                  textColor,
+              backgroundColor: node.attributes['data-mx-bg-color']?.hexToColor,
+            ),
             'sup' => const TextStyle(
-                fontFeatures: [FontFeature.superscripts()],
-              ),
+              fontFeatures: [FontFeature.superscripts()],
+            ),
             'sub' => const TextStyle(fontFeatures: [FontFeature.subscripts()]),
             _ => null,
           },
@@ -556,10 +559,7 @@ class MatrixPill extends StatelessWidget {
     return InkWell(
       onTap: UrlLauncher(outerContext, uri).launchUrl,
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8.0,
-          bottom: 8.0,
-        ),
+        padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
         child: Material(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -579,19 +579,16 @@ class MatrixPill extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Avatar(
-                  mxContent: avatar,
-                  name: name,
-                  size: 50,
-                ),
+                Avatar(mxContent: avatar, name: name, size: 50),
                 const SizedBox(width: 6, height: 50),
                 Text(
                   name,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color:
-                        Theme.of(outerContext).colorScheme.onPrimaryContainer,
+                    color: Theme.of(
+                      outerContext,
+                    ).colorScheme.onPrimaryContainer,
                   ),
                 ),
               ],

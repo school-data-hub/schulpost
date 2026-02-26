@@ -43,7 +43,7 @@ class SettingsPasswordView extends StatelessWidget {
                 icon: const Icon(Icons.send_outlined),
                 label: controller.loading
                     ? const LinearProgressIndicator()
-                    : Text(L10n.of(context)!.changePassword),
+                    : Text(L10n.of(context).changePassword),
               ),
             ),
           ],

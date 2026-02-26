@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fluffychat/config/app_config.dart';
-import 'package:fluffychat/config/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -345,7 +344,7 @@ class ChatListController extends State<ChatList>
         final roomId = response.roomId;
         if (roomId != null) {
           allRoomsSearchResult.chunk.add(
-            PublicRoomsChunk(
+            PublishedRoomsChunk(
               name: searchQuery,
               guestCanJoin: false,
               numJoinedMembers: 0,

@@ -75,7 +75,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
     _createBootstrap(widget.wipe);
   }
 
-  void _cancelAction() async {
+  Future<void> _cancelAction() async {
     final consent = await showOkCancelAlertDialog(
       context: context,
       title: L10n.of(context).skipChatBackup,
@@ -94,7 +94,7 @@ class BootstrapDialogState extends State<BootstrapDialog> {
     context.canPop() ? context.pop(success) : context.go('/rooms');
   }
 
-  void _decryptLastEvents() async {
+  void _decryptLastEvents() {
     for (final room in client.rooms) {
       final event = room.lastEvent;
       if (event != null &&
@@ -114,12 +114,12 @@ class BootstrapDialogState extends State<BootstrapDialog> {
     }
   }
 
-  void _createBootstrap(bool wipe) async {
+  Future<void> _createBootstrap(bool wipe) async {
     await client.roomsLoading;
     await client.accountDataLoading;
     await client.userDeviceKeysLoading;
     while (client.prevBatch == null) {
-      await client.onSync.stream.first;
+      await client.onSyncStatus.stream.first;
     }
     await client.updateUserDeviceKeys();
     _wipe = wipe;

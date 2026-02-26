@@ -34,7 +34,7 @@ abstract class PlatformInfos {
       !PlatformInfos.isWindows && !PlatformInfos.isLinux;
 
   /// Web could also record in theory but currently only wav which is too large
-  static bool get platformCanRecord => (isMobile || isMacOS);
+  static bool get platformCanRecord => (isMobile || isMacOS || isWeb);
 
   static String get clientName =>
       '${AppSettings.applicationName.value} ${isWeb ? 'web' : Platform.operatingSystem}${kReleaseMode ? '' : 'Debug'}';
@@ -47,12 +47,12 @@ abstract class PlatformInfos {
     return version;
   }
 
-  static void showDialog(BuildContext context) async {
+  static Future<void> showDialog(BuildContext context) async {
     final version = await PlatformInfos.getVersion();
     showAboutDialog(
       context: context,
       children: [
-        Text('Version: $version'),
+        Text(L10n.of(context).versionWithNumber(version)),
         TextButton.icon(
           onPressed: () => launchUrlString(AppConfig.sourceCodeUrl),
           icon: const Icon(Icons.source_outlined),
@@ -66,22 +66,22 @@ abstract class PlatformInfos {
                 Navigator.of(innerContext).pop();
               },
               icon: const Icon(Icons.list_outlined),
-              label: const Text('Logs'),
+              label: Text(L10n.of(context).logs),
             );
           },
         ),
-        // Builder(
-        //   builder: (innerContext) {
-        //     return TextButton.icon(
-        //       onPressed: () {
-        //         context.go('/configs');
-        //         Navigator.of(innerContext).pop();
-        //       },
-        //       icon: const Icon(Icons.settings_applications_outlined),
-        //       label: const Text('Advanced Configs'),
-        //     );
-        //   },
-        // ),
+        Builder(
+          builder: (innerContext) {
+            return TextButton.icon(
+              onPressed: () {
+                context.go('/configs');
+                Navigator.of(innerContext).pop();
+              },
+              icon: const Icon(Icons.settings_applications_outlined),
+              label: Text(L10n.of(context).advancedConfigs),
+            );
+          },
+        ),
       ],
       applicationIcon: Image.asset(
         'assets/logo.png',

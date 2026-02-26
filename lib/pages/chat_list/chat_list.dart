@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fluffychat/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,7 +9,7 @@ import 'package:flutter_shortcuts_new/flutter_shortcuts_new.dart';
 import 'package:go_router/go_router.dart';
 import 'package:matrix/matrix.dart' as sdk;
 import 'package:matrix/matrix.dart';
-import 'package:listen_sharing_intent/listen_sharing_intent.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat_list/chat_list_view.dart';
@@ -30,16 +29,7 @@ import '../../config/setting_keys.dart';
 import '../../utils/url_launcher.dart';
 import '../../widgets/matrix.dart';
 
-enum PopupMenuAction {
-  settings,
-  invite,
-  newGroup,
-  newSpace,
-  setStatus,
-  archive,
-}
-
-enum ActiveFilter { allChats, messages, groups, unread, spaces, settings }
+enum ActiveFilter { allChats, messages, groups, unread, spaces }
 
 extension LocalizedActiveFilter on ActiveFilter {
   String toLocalizedString(BuildContext context) {
@@ -54,8 +44,6 @@ extension LocalizedActiveFilter on ActiveFilter {
         return L10n.of(context).groups;
       case ActiveFilter.spaces:
         return L10n.of(context).spaces;
-      case ActiveFilter.settings:
-        return L10n.of(context).settings;
     }
   }
 }
@@ -85,110 +73,16 @@ class ChatListController extends State<ChatList>
 
   StreamSubscription? _intentUriStreamSubscription;
 
-  //late ActiveFilter activeFilter;
-  ActiveFilter activeFilter = AppConfig.separateChatTypes
-      ? ActiveFilter.messages
-      : ActiveFilter.allChats;
-
-  bool get displayNavigationBar => true;
-  // !FluffyThemes.isColumnMode(context) &&
-  // (spaces.isNotEmpty || AppConfig.separateChatTypes);
-
-  int get selectedIndex {
-    switch (activeFilter) {
-      case ActiveFilter.allChats:
-        return 0;
-      case ActiveFilter.groups:
-        return 1;
-      case ActiveFilter.settings:
-        return AppConfig.separateChatTypes ? 2 : 1;
-      default:
-        return 0;
-    }
-  }
-
-  ActiveFilter getActiveFilterByDestination(int? i) {
-    switch (i) {
-      case 2:
-        return ActiveFilter.settings;
-      case 1:
-        return ActiveFilter.groups;
-      case 0:
-      default:
-        return ActiveFilter.allChats;
-    }
-  }
-
-  void onDestinationSelected(int? i) {
-    if (i == 2) {
-      setState(() {
-        activeFilter = ActiveFilter.settings;
-      });
-    } else if (i == 1) {
-      setState(() {
-        activeFilter = ActiveFilter.groups;
-      });
-    } else {
-      setState(() {
-        activeFilter = getActiveFilterByDestination(i);
-      });
-    }
-  }
-
-  //bool get displayNavigationBar => true;
-  // !FluffyThemes.isColumnMode(context) &&
-  // (spaces.isNotEmpty || AppConfig.separateChatTypes);
-
-  // int get selectedIndex {
-  //   switch (activeFilter) {
-  //     case ActiveFilter.allChats:
-  //       return 0;
-  //     case ActiveFilter.groups:
-  //       return 1;
-  //     case ActiveFilter.settings:
-  //       return AppConfig.separateChatTypes ? 2 : 1;
-  //     default:
-  //       return 0;
-  //   }
-  // }
-
-  // ActiveFilter getActiveFilterByDestination(int? i) {
-  //   switch (i) {
-  //     case 2:
-  //       return ActiveFilter.settings;
-  //     case 1:
-  //       return ActiveFilter.groups;
-  //     case 0:
-  //     default:
-  //       return ActiveFilter.allChats;
-  //   }
-  // }
-
-  // void onDestinationSelected(int? i) {
-  //   if (i == 2) {
-  //     setState(() {
-  //       activeFilter = ActiveFilter.settings;
-  //     });
-  //   } else if (i == 1) {
-  //     setState(() {
-  //       activeFilter = ActiveFilter.groups;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       activeFilter = getActiveFilterByDestination(i);
-  //     });
-  //   }
-  // }
+  late ActiveFilter activeFilter;
 
   String? _activeSpaceId;
   String? get activeSpaceId => _activeSpaceId;
 
-  void setActiveSpace(String spaceId) async {
+  Future<void> setActiveSpace(String spaceId) async {
     await Matrix.of(context).client.getRoomById(spaceId)!.postLoad();
 
     setState(() {
       _activeSpaceId = spaceId;
-      activeFilter = ActiveFilter.settings;
     });
   }
 
@@ -196,7 +90,7 @@ class ChatListController extends State<ChatList>
     _activeSpaceId = null;
   });
 
-  void onChatTap(Room room) async {
+  Future<void> onChatTap(Room room) async {
     if (room.membership == Membership.invite) {
       final joinResult = await showFutureLoadingDialog(
         context: context,
@@ -245,8 +139,6 @@ class ChatListController extends State<ChatList>
         return (room) => room.isUnreadOrInvited;
       case ActiveFilter.spaces:
         return (room) => room.isSpace;
-      case ActiveFilter.settings:
-        return (r) => r.isSpace;
     }
   }
 
@@ -264,7 +156,7 @@ class ChatListController extends State<ChatList>
   bool isSearching = false;
   static const String _serverStoreNamespace = 'im.fluffychat.search.server';
 
-  void setServer() async {
+  Future<void> setServer() async {
     final newServer = await showTextInputDialog(
       useRootNavigator: false,
       title: L10n.of(context).changeTheHomeserver,
@@ -292,43 +184,18 @@ class ChatListController extends State<ChatList>
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
 
-  void getPublicRooms() async {
-    final client = Matrix.of(context).client;
-
-    QueryPublicRoomsResponse? allPublicRooms;
-    try {
-      allPublicRooms = await client.queryPublicRooms(
-        server: searchServer,
-        //filter: PublicRoomQueryFilter(genericSearchTerm: searchController.text),
-        limit: 40,
-      );
-    } catch (e, s) {
-      Logs().w('Room fetching has crashed', e, s);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Room fetching has crashed ${e.toLocalizedString(context)}',
-          ),
-        ),
-      );
-    }
-    setState(() {
-      roomSearchResult = allPublicRooms;
-    });
-  }
-
-  void _search() async {
+  Future<void> _search() async {
     final client = Matrix.of(context).client;
     if (!isSearching) {
       setState(() {
         isSearching = true;
       });
     }
-    //  SearchUserDirectoryResponse? userSearchResult;
-    QueryPublicRoomsResponse? allRoomsSearchResult;
+    SearchUserDirectoryResponse? userSearchResult;
+    QueryPublicRoomsResponse? roomSearchResult;
     final searchQuery = searchController.text.trim();
     try {
-      allRoomsSearchResult = await client.queryPublicRooms(
+      roomSearchResult = await client.queryPublicRooms(
         server: searchServer,
         filter: PublicRoomQueryFilter(genericSearchTerm: searchQuery),
         limit: 20,
@@ -336,14 +203,14 @@ class ChatListController extends State<ChatList>
 
       if (searchQuery.isValidMatrixId &&
           searchQuery.sigil == '#' &&
-          allRoomsSearchResult.chunk.any(
+          roomSearchResult.chunk.any(
                 (room) => room.canonicalAlias == searchQuery,
               ) ==
               false) {
         final response = await client.getRoomIdByAlias(searchQuery);
         final roomId = response.roomId;
         if (roomId != null) {
-          allRoomsSearchResult.chunk.add(
+          roomSearchResult.chunk.add(
             PublishedRoomsChunk(
               name: searchQuery,
               guestCanJoin: false,
@@ -355,10 +222,10 @@ class ChatListController extends State<ChatList>
           );
         }
       }
-      // userSearchResult = await client.searchUserDirectory(
-      //   searchController.text,
-      //   limit: 20,
-      // );
+      userSearchResult = await client.searchUserDirectory(
+        searchController.text,
+        limit: 20,
+      );
     } catch (e, s) {
       Logs().w('Searching has crashed', e, s);
       ScaffoldMessenger.of(
@@ -368,9 +235,8 @@ class ChatListController extends State<ChatList>
     if (!isSearchMode) return;
     setState(() {
       isSearching = false;
-      //  this.roomSearchResult = roomSearchResult;
-      // this.userSearchResult = userSearchResult;
-      roomSearchResult = allRoomsSearchResult;
+      this.roomSearchResult = roomSearchResult;
+      this.userSearchResult = userSearchResult;
     });
   }
 
@@ -426,7 +292,7 @@ class ChatListController extends State<ChatList>
     }
   }
 
-  void editSpace(BuildContext context, String spaceId) async {
+  Future<void> editSpace(BuildContext context, String spaceId) async {
     await Matrix.of(context).client.getRoomById(spaceId)!.postLoad();
     if (mounted) {
       context.push('/rooms/$spaceId/details');
@@ -460,7 +326,7 @@ class ChatListController extends State<ChatList>
     );
   }
 
-  void _processIncomingUris(Uri? uri) async {
+  Future<void> _processIncomingUris(Uri? uri) async {
     if (uri == null) return;
     context.go('/rooms');
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -499,16 +365,14 @@ class ChatListController extends State<ChatList>
 
   @override
   void initState() {
-    activeFilter = AppSettings.separateChatTypes.value
-        ? ActiveFilter.messages
-        : ActiveFilter.allChats;
+    activeFilter = ActiveFilter.allChats;
     _initReceiveSharingIntent();
     _activeSpaceId = widget.activeSpace;
 
     scrollController.addListener(_onScroll);
     _waitForFirstSync();
     _hackyWebRTCFixForWeb();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         searchServer = Matrix.of(
           context,
@@ -535,7 +399,7 @@ class ChatListController extends State<ChatList>
     super.dispose();
   }
 
-  void chatContextAction(
+  Future<void> chatContextAction(
     Room room,
     BuildContext posContext, [
     Room? space,
@@ -576,25 +440,16 @@ class ChatListController extends State<ChatList>
         PopupMenuItem(
           value: ChatContextAction.open,
           child: Row(
-            mainAxisSize: .min,
             spacing: 12.0,
             children: [
-              Avatar(mxContent: room.avatar, name: displayname),
+              Avatar(mxContent: room.avatar, name: displayname, size: 24),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 128),
-                child: Text(
-                  displayname,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                constraints: const BoxConstraints(maxWidth: 200),
+                child: Text(displayname, maxLines: 1, overflow: .ellipsis),
               ),
             ],
           ),
         ),
-        const PopupMenuDivider(),
         if (space != null)
           PopupMenuItem(
             value: ChatContextAction.goToSpace,
@@ -807,7 +662,7 @@ class ChatListController extends State<ChatList>
     }
   }
 
-  void dismissStatusList() async {
+  Future<void> dismissStatusList() async {
     final result = await showOkCancelAlertDialog(
       title: L10n.of(context).hidePresences,
       context: context,
@@ -818,7 +673,7 @@ class ChatListController extends State<ChatList>
     }
   }
 
-  void setStatus() async {
+  Future<void> setStatus() async {
     final client = Matrix.of(context).client;
     final currentPresence = await client.fetchCurrentPresence(client.userID!);
     final input = await showTextInputDialog(
@@ -929,7 +784,10 @@ class ChatListController extends State<ChatList>
     });
   }
 
-  void editBundlesForAccount(String? userId, String? activeBundle) async {
+  Future<void> editBundlesForAccount(
+    String? userId,
+    String? activeBundle,
+  ) async {
     final l10n = L10n.of(context);
     final client = Matrix.of(
       context,
@@ -1005,8 +863,6 @@ class ChatListController extends State<ChatList>
 }
 
 enum EditBundleAction { addToBundle, removeFromBundle }
-
-enum InviteActions { accept, decline, block }
 
 enum ChatContextAction {
   open,

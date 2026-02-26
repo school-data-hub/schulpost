@@ -67,7 +67,6 @@ enum AppSettings<T> {
   fontSizeFactor<double>('chat.fluffy.font_size_factor', 1.0),
   hideRedactedEvents<bool>('chat.fluffy.hideRedactedEvents', false),
   hideUnknownEvents<bool>('chat.fluffy.hideUnknownEvents', true),
-  separateChatTypes<bool>('chat.fluffy.separateChatTypes', false),
   autoplayImages<bool>('chat.fluffy.autoplay_images', true),
   sendTypingNotifications<bool>('chat.fluffy.send_typing_notifications', true),
   sendPublicReadReceipts<bool>('chat.fluffy.send_public_read_receipts', true),
@@ -91,7 +90,10 @@ enum AppSettings<T> {
   // colorSchemeSeed stored as ARGB int
   colorSchemeSeedInt<int>('chat.fluffy.color_scheme_seed', 0xFF5625BA),
   emojiSuggestionLocale<String>('emoji_suggestion_locale', ''),
-  enableSoftLogout<bool>('chat.fluffy.enable_soft_logout', false);
+  enableSoftLogout<bool>('chat.fluffy.enable_soft_logout', false),
+  enableMatrixNativeOIDC<bool>('chat.fluffy.enable_matrix_native_oidc', false),
+  presetHomeserver<String>('chat.fluffy.preset_homeserver', ''),
+  welcomeText<String>('chat.fluffy.welcome_text', '');
 
   final String key;
   final T defaultValue;

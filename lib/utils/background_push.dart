@@ -45,10 +45,6 @@ import 'platform_infos.dart';
 
 import 'package:fcm_shared_isolate/fcm_shared_isolate.dart';
 
-class NoTokenException implements Exception {
-  String get cause => 'Cannot get firebase token';
-}
-
 class BackgroundPush {
   static BackgroundPush? _instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
@@ -76,7 +72,7 @@ class BackgroundPush {
 
   bool upAction = false;
 
-  void _init() async {
+  Future<void> _init() async {
     //<GOOGLE_SERVICES>firebaseEnabled = true;
     try {
       mainIsolateReceivePort?.listen((message) async {
@@ -112,7 +108,7 @@ class BackgroundPush {
         });
       }
       await _flutterLocalNotificationsPlugin.initialize(
-        const InitializationSettings(
+        settings: const InitializationSettings(
           android: AndroidInitializationSettings('notifications_icon'),
           iOS: DarwinInitializationSettings(),
         ),
@@ -170,7 +166,7 @@ class BackgroundPush {
 
   Future<void> cancelNotification(String roomId) async {
     Logs().v('Cancel notification for room', roomId);
-    await _flutterLocalNotificationsPlugin.cancel(roomId.hashCode);
+    await _flutterLocalNotificationsPlugin.cancel(id: roomId.hashCode);
 
     // Workaround for app icon badge not updating
     if (Platform.isIOS) {
@@ -235,7 +231,7 @@ class BackgroundPush {
           currentPushers.first.data.format ==
               AppSettings.pushNotificationsPusherFormat.value &&
           mapEquals(currentPushers.single.data.additionalProperties, {
-            "data_message": pusherDataMessageFormat,
+            'data_message': pusherDataMessageFormat,
           })) {
         Logs().i('[Push] Pusher already set');
       } else {
@@ -273,7 +269,7 @@ class BackgroundPush {
             data: PusherData(
               url: Uri.parse(gatewayUrl!),
               format: AppSettings.pushNotificationsPusherFormat.value,
-              additionalProperties: {"data_message": pusherDataMessageFormat},
+              additionalProperties: {'data_message': pusherDataMessageFormat},
             ),
             kind: 'http',
           ),
@@ -294,7 +290,7 @@ class BackgroundPush {
   static bool _wentToRoomOnStartup = false;
 
   Future<void> setupPush() async {
-    Logs().d("SetupPush");
+    Logs().d('SetupPush');
     if (client.onLoginStateChanged.value != LoginState.loggedIn ||
         !PlatformInfos.isMobile ||
         matrix == null) {
@@ -378,7 +374,7 @@ class BackgroundPush {
   Future<void> setupUp() async {
     await UnifiedPushUi(
       context: matrix!.context,
-      instances: ["default"],
+      instances: ['default'],
       unifiedPushFunctions: UPFunctions(),
       showNoDistribDialog: false,
       onNoDistribDialogDismissed: () {}, // TODO: Implement me

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/encrypted_credentials/scanned_credentials.dart';
+import 'package:fluffychat/utils/localized_exception_extension.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 import 'package:flutter/material.dart';
 import 'package:matrix/matrix.dart';
@@ -114,6 +115,27 @@ class QrLoginState extends State<QrLoginScreen> {
       return;
     }
 
+    // Homeserver check runs AFTER scan, using the homeserver from the QR.
+    var homeserverUri = Uri.tryParse(scannedCredentials.homeServer);
+    if (homeserverUri == null || homeserverUri.scheme.isEmpty) {
+      homeserverUri = Uri.https(scannedCredentials.homeServer.trim(), '');
+    }
+    final client = await matrix.getLoginClient();
+    try {
+      await client.checkHomeserver(homeserverUri);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        loginScanImage = 'assets/wrongpin.png';
+        loginScanMessage = e.toLocalizedString(
+          context,
+          ExceptionContext.checkHomeserver,
+        );
+      });
+      return;
+    }
+    if (!mounted) return;
+
     setState(() {
       loginScanImage = 'assets/scansuccess.png';
       loginScanMessage = 'Scan erfolgreich!\n \nAnmeldung wird versucht...';
@@ -143,7 +165,6 @@ class QrLoginState extends State<QrLoginScreen> {
     });
 
     try {
-      final client = await matrix.getLoginClient();
       final username = scannedCredentials.userId;
       final identifier = AuthenticationUserIdentifier(user: username);
       await client.login(

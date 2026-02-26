@@ -18,8 +18,6 @@ import 'package:fluffychat/widgets/adaptive_dialogs/show_text_input_dialog.dart'
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 
-enum AliasActions { copy, delete, setCanonical }
-
 class ChatDetails extends StatefulWidget {
   final String roomId;
   final Widget? embeddedCloseButton;
@@ -45,7 +43,7 @@ class ChatDetailsController extends State<ChatDetails> {
 
   String? get roomId => widget.roomId;
 
-  void setDisplaynameAction() async {
+  Future<void> setDisplaynameAction() async {
     final room = Matrix.of(context).client.getRoomById(roomId!)!;
     final input = await showTextInputDialog(
       context: context,
@@ -66,7 +64,7 @@ class ChatDetailsController extends State<ChatDetails> {
     }
   }
 
-  void setTopicAction() async {
+  Future<void> setTopicAction() async {
     final room = Matrix.of(context).client.getRoomById(roomId!)!;
     final input = await showTextInputDialog(
       context: context,
@@ -90,7 +88,7 @@ class ChatDetailsController extends State<ChatDetails> {
     }
   }
 
-  void setAvatarAction() async {
+  Future<void> setAvatarAction() async {
     final room = Matrix.of(context).client.getRoomById(roomId!);
     final actions = [
       if (PlatformInfos.isMobile)

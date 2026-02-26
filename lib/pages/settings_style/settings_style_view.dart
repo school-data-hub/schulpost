@@ -201,7 +201,7 @@ class SettingsStyleView extends StatelessWidget {
                                   type: EventTypes.RoomMember,
                                   senderId: client.userID!,
                                   originServerTs: DateTime.now(),
-                                  stateKey: client.userID!,
+                                  stateKey: client.userID,
                                 ),
                               ),
                               Padding(
@@ -335,30 +335,24 @@ class SettingsStyleView extends StatelessWidget {
               semanticFormatterCallback: (d) => d.toString(),
               onChanged: controller.changeFontSizeFactor,
             ),
-            if (AppConfig.isTeacher) ...[
-              Divider(color: theme.dividerColor),
-              ListTile(
-                title: Text(
-                  L10n.of(context).overview,
-                  style: TextStyle(
-                    color: theme.colorScheme.secondary,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Divider(color: theme.dividerColor),
+            ListTile(
+              title: Text(
+                L10n.of(context).overview,
+                style: TextStyle(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              SettingsSwitchListTile.adaptive(
-                title: L10n.of(context).presencesToggle,
-                setting: AppSettings.showPresences,
-              ),
-              SettingsSwitchListTile.adaptive(
-                title: L10n.of(context).separateChatTypes,
-                setting: AppSettings.separateChatTypes,
-              ),
-              SettingsSwitchListTile.adaptive(
-                title: L10n.of(context).displayNavigationRail,
-                setting: AppSettings.displayNavigationRail,
-              ),
-            ],
+            ),
+            SettingsSwitchListTile.adaptive(
+              title: L10n.of(context).presencesToggle,
+              setting: AppSettings.showPresences,
+            ),
+            SettingsSwitchListTile.adaptive(
+              title: L10n.of(context).displayNavigationRail,
+              setting: AppSettings.displayNavigationRail,
+            ),
           ],
         ),
       ),

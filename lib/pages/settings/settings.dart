@@ -1,24 +1,21 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:fluffychat/config/app_config.dart';
-import 'package:fluffychat/config/setting_keys.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:matrix/encryption.dart';
+import 'package:matrix/matrix.dart';
+
 import 'package:fluffychat/l10n/l10n.dart';
-import 'package:fluffychat/main.dart';
-import 'package:fluffychat/utils/client_manager.dart';
 import 'package:fluffychat/utils/file_selector.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
-import 'package:fluffychat/utils/shorebird_updater.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_modal_action_popup.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_ok_cancel_alert_dialog.dart';
 import 'package:fluffychat/widgets/adaptive_dialogs/show_text_input_dialog.dart';
 import 'package:fluffychat/widgets/future_loading_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:matrix/matrix.dart';
-
 import '../../widgets/matrix.dart';
 import 'settings_view.dart';
 
@@ -32,26 +29,13 @@ class Settings extends StatefulWidget {
 class SettingsController extends State<Settings> {
   Future<Profile>? profileFuture;
   bool profileUpdated = false;
-  final ShorebirdUpdateManager updateManager =
-      locator<ShorebirdUpdateManager>();
+
   void updateProfile() => setState(() {
     profileUpdated = true;
     profileFuture = null;
   });
-  void changeTeacherStatus() async {
-    final bool newStatus;
-    if (AppConfig.isTeacher == true) {
-      newStatus = false;
-    } else {
-      newStatus = true;
-    }
-    await Matrix.of(context).store.setBool(SettingKeys.isTeacher, newStatus);
-    setState(() {
-      AppConfig.isTeacher == (newStatus);
-    });
-  }
 
-  void setDisplaynameAction() async {
+  Future<void> setDisplaynameAction() async {
     final profile = await profileFuture;
     final input = await showTextInputDialog(
       useRootNavigator: false,
@@ -77,33 +61,27 @@ class SettingsController extends State<Settings> {
     }
   }
 
-  void logoutAction() async {
-    final noBackup = showChatBackupBanner == true;
+  Future<void> logoutAction() async {
     if (await showOkCancelAlertDialog(
           useRootNavigator: false,
           context: context,
           title: L10n.of(context).areYouSureYouWantToLogout,
           message: L10n.of(context).noBackupWarning,
-          isDestructive: noBackup,
+          isDestructive: cryptoIdentityConnected == false,
           okLabel: L10n.of(context).logout,
           cancelLabel: L10n.of(context).cancel,
         ) ==
         OkCancelResult.cancel) {
       return;
     }
-    await ClientManager.createClient(
-      PlatformInfos.clientName,
-      AppSettings.store,
-    );
     final matrix = Matrix.of(context);
-
     await showFutureLoadingDialog(
       context: context,
       future: () => matrix.client.logout(),
     );
   }
 
-  void setAvatarAction() async {
+  Future<void> setAvatarAction() async {
     final profile = await profileFuture;
     final actions = [
       if (PlatformInfos.isMobile)
@@ -181,7 +159,7 @@ class SettingsController extends State<Settings> {
     super.initState();
   }
 
-  void checkBootstrap() async {
+  Future<void> checkBootstrap() async {
     final client = Matrix.of(context).client;
     if (!client.encryptionEnabled) return;
     await client.accountDataLoading;
@@ -189,23 +167,17 @@ class SettingsController extends State<Settings> {
     if (client.prevBatch == null) {
       await client.onSync.stream.first;
     }
-    final crossSigning =
-        await client.encryption?.crossSigning.isCached() ?? false;
-    final needsBootstrap =
-        await client.encryption?.keyManager.isCached() == false ||
-        client.encryption?.crossSigning.enabled == false ||
-        crossSigning == false;
-    final isUnknownSession = client.isUnknownSession;
+
+    final state = await client.getCryptoIdentityState();
     setState(() {
-      showChatBackupBanner = needsBootstrap || isUnknownSession;
+      cryptoIdentityConnected = state.initialized && state.connected;
     });
   }
 
-  bool? crossSigningCached;
-  bool? showChatBackupBanner;
+  bool? cryptoIdentityConnected;
 
-  void firstRunBootstrapAction([dynamic _]) async {
-    if (showChatBackupBanner != true) {
+  Future<void> firstRunBootstrapAction([_]) async {
+    if (cryptoIdentityConnected == true) {
       showOkAlertDialog(
         context: context,
         title: L10n.of(context).chatBackup,

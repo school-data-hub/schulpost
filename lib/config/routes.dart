@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fluffychat/pages/login/qr_login.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -18,19 +17,23 @@ import 'package:fluffychat/pages/chat_members/chat_members.dart';
 import 'package:fluffychat/pages/chat_permissions_settings/chat_permissions_settings.dart';
 import 'package:fluffychat/pages/chat_search/chat_search_page.dart';
 import 'package:fluffychat/pages/device_settings/device_settings.dart';
-import 'package:fluffychat/pages/homeserver_picker/homeserver_picker.dart';
+import 'package:fluffychat/pages/intro/intro_page_presenter.dart';
 import 'package:fluffychat/pages/invitation_selection/invitation_selection.dart';
 import 'package:fluffychat/pages/login/login.dart';
+import 'package:fluffychat/pages/login/qr_login.dart';
 import 'package:fluffychat/pages/new_group/new_group.dart';
 import 'package:fluffychat/pages/new_private_chat/new_private_chat.dart';
+import 'package:fluffychat/pages/settings/settings.dart';
 import 'package:fluffychat/pages/settings_3pid/settings_3pid.dart';
 import 'package:fluffychat/pages/settings_chat/settings_chat.dart';
 import 'package:fluffychat/pages/settings_emotes/settings_emotes.dart';
+import 'package:fluffychat/pages/settings_homeserver/settings_homeserver.dart';
 import 'package:fluffychat/pages/settings_ignore_list/settings_ignore_list.dart';
 import 'package:fluffychat/pages/settings_notifications/settings_notifications.dart';
 import 'package:fluffychat/pages/settings_password/settings_password.dart';
 import 'package:fluffychat/pages/settings_security/settings_security.dart';
 import 'package:fluffychat/pages/settings_style/settings_style.dart';
+import 'package:fluffychat/pages/sign_in/sign_in_page.dart';
 import 'package:fluffychat/widgets/config_viewer.dart';
 import 'package:fluffychat/widgets/layouts/empty_page.dart';
 import 'package:fluffychat/widgets/layouts/two_column_layout.dart';
@@ -42,18 +45,16 @@ abstract class AppRoutes {
   static FutureOr<String?> loggedInRedirect(
     BuildContext context,
     GoRouterState state,
-  ) =>
-      Matrix.of(context).widget.clients.any((client) => client.isLogged())
-          ? '/rooms'
-          : null;
+  ) => Matrix.of(context).widget.clients.any((client) => client.isLogged())
+      ? '/rooms'
+      : null;
 
   static FutureOr<String?> loggedOutRedirect(
     BuildContext context,
     GoRouterState state,
-  ) =>
-      Matrix.of(context).widget.clients.any((client) => client.isLogged())
-          ? null
-          : '/home';
+  ) => Matrix.of(context).widget.clients.any((client) => client.isLogged())
+      ? null
+      : '/home';
 
   AppRoutes();
 
@@ -62,18 +63,27 @@ abstract class AppRoutes {
       path: '/',
       redirect: (context, state) =>
           Matrix.of(context).widget.clients.any((client) => client.isLogged())
-              ? '/rooms'
-              : '/home',
+          ? '/rooms'
+          : '/home',
     ),
     GoRoute(
       path: '/home',
-      pageBuilder: (context, state) => defaultPageBuilder(
-        context,
-        state,
-        const HomeserverPicker(addMultiAccount: false),
-      ),
+      pageBuilder: (context, state) =>
+          defaultPageBuilder(context, state, const IntroPagePresenter()),
       redirect: loggedInRedirect,
       routes: [
+        GoRoute(
+          path: 'sign_in',
+          pageBuilder: (context, state) =>
+              defaultPageBuilder(context, state, SignInPage(signUp: false)),
+          redirect: loggedInRedirect,
+        ),
+        GoRoute(
+          path: 'sign_up',
+          pageBuilder: (context, state) =>
+              defaultPageBuilder(context, state, SignInPage(signUp: true)),
+          redirect: loggedInRedirect,
+        ),
         GoRoute(
           path: 'login',
           pageBuilder: (context, state) => defaultPageBuilder(
@@ -189,114 +199,180 @@ abstract class AppRoutes {
               ),
               redirect: loggedOutRedirect,
             ),
-            GoRoute(
-              path: 'settings/notifications',
-              pageBuilder: (context, state) => defaultPageBuilder(
+            ShellRoute(
+              pageBuilder: (context, state, child) => defaultPageBuilder(
                 context,
                 state,
-                const SettingsNotifications(),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'settings/style',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const SettingsStyle(),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'settings/devices',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const DevicesSettings(),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'settings/chat',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const SettingsChat(),
+                FluffyThemes.isColumnMode(context)
+                    ? TwoColumnLayout(
+                        mainView: Settings(key: state.pageKey),
+                        sideView: child,
+                        hasNavigationRail: false,
+                      )
+                    : child,
               ),
               routes: [
                 GoRoute(
-                  path: 'settings/emotes',
+                  path: 'settings',
                   pageBuilder: (context, state) => defaultPageBuilder(
                     context,
                     state,
-                    EmotesSettings(
-                      roomId: state.pathParameters['roomid'],
-                    ),
+                    FluffyThemes.isColumnMode(context)
+                        ? const EmptyPage()
+                        : const Settings(),
                   ),
-                ),
-              ],
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'settings/addaccount',
-              redirect: loggedOutRedirect,
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const HomeserverPicker(addMultiAccount: true),
-              ),
-              routes: [
-                GoRoute(
-                  path: 'login',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    Login(client: state.extra as Client),
-                  ),
-                  redirect: loggedOutRedirect,
-                ),
-              ],
-            ),
-            GoRoute(
-              path: 'settings/security',
-              redirect: loggedOutRedirect,
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const SettingsSecurity(),
-              ),
-              routes: [
-                GoRoute(
-                  path: 'password',
-                  pageBuilder: (context, state) {
-                    return defaultPageBuilder(
-                      context,
-                      state,
-                      const SettingsPassword(),
-                    );
-                  },
-                  redirect: loggedOutRedirect,
-                ),
-                GoRoute(
-                  path: 'ignorelist',
-                  pageBuilder: (context, state) {
-                    return defaultPageBuilder(
-                      context,
-                      state,
-                      SettingsIgnoreList(
-                        initialUserId: state.extra?.toString(),
+                  routes: [
+                    GoRoute(
+                      path: 'notifications',
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const SettingsNotifications(),
                       ),
-                    );
-                  },
-                  redirect: loggedOutRedirect,
-                ),
-                GoRoute(
-                  path: '3pid',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    const Settings3Pid(),
-                  ),
+                      redirect: loggedOutRedirect,
+                    ),
+                    GoRoute(
+                      path: 'style',
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const SettingsStyle(),
+                      ),
+                      redirect: loggedOutRedirect,
+                    ),
+                    GoRoute(
+                      path: 'devices',
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const DevicesSettings(),
+                      ),
+                      redirect: loggedOutRedirect,
+                    ),
+                    GoRoute(
+                      path: 'chat',
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const SettingsChat(),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'emotes',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            EmotesSettings(
+                              roomId: state.pathParameters['roomid'],
+                            ),
+                          ),
+                        ),
+                      ],
+                      redirect: loggedOutRedirect,
+                    ),
+                    GoRoute(
+                      path: 'addaccount',
+                      redirect: loggedOutRedirect,
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const IntroPagePresenter(),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'sign_in',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            SignInPage(signUp: false),
+                          ),
+                          redirect: loggedOutRedirect,
+                        ),
+                        GoRoute(
+                          path: 'sign_up',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            SignInPage(signUp: true),
+                          ),
+                          redirect: loggedOutRedirect,
+                        ),
+                        GoRoute(
+                          path: 'login',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            Login(client: state.extra as Client),
+                          ),
+                          redirect: loggedOutRedirect,
+                        ),
+                        GoRoute(
+                          path: 'qrLogin',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            const QrLoginScreen(),
+                          ),
+                          redirect: loggedOutRedirect,
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: 'homeserver',
+                      pageBuilder: (context, state) {
+                        return defaultPageBuilder(
+                          context,
+                          state,
+                          const SettingsHomeserver(),
+                        );
+                      },
+                      redirect: loggedOutRedirect,
+                    ),
+                    GoRoute(
+                      path: 'security',
+                      redirect: loggedOutRedirect,
+                      pageBuilder: (context, state) => defaultPageBuilder(
+                        context,
+                        state,
+                        const SettingsSecurity(),
+                      ),
+                      routes: [
+                        GoRoute(
+                          path: 'password',
+                          pageBuilder: (context, state) {
+                            return defaultPageBuilder(
+                              context,
+                              state,
+                              const SettingsPassword(),
+                            );
+                          },
+                          redirect: loggedOutRedirect,
+                        ),
+                        GoRoute(
+                          path: 'ignorelist',
+                          pageBuilder: (context, state) {
+                            return defaultPageBuilder(
+                              context,
+                              state,
+                              SettingsIgnoreList(
+                                initialUserId: state.extra?.toString(),
+                              ),
+                            );
+                          },
+                          redirect: loggedOutRedirect,
+                        ),
+                        GoRoute(
+                          path: '3pid',
+                          pageBuilder: (context, state) => defaultPageBuilder(
+                            context,
+                            state,
+                            const Settings3Pid(),
+                          ),
+                          redirect: loggedOutRedirect,
+                        ),
+                      ],
+                    ),
+                  ],
                   redirect: loggedOutRedirect,
                 ),
               ],
@@ -427,23 +503,21 @@ abstract class AppRoutes {
     BuildContext context,
     GoRouterState state,
     Widget child,
-  ) =>
-      NoTransitionPage(
-        key: state.pageKey,
-        restorationId: state.pageKey.value,
-        child: child,
-      );
+  ) => NoTransitionPage(
+    key: state.pageKey,
+    restorationId: state.pageKey.value,
+    child: child,
+  );
 
   static Page defaultPageBuilder(
     BuildContext context,
     GoRouterState state,
     Widget child,
-  ) =>
-      FluffyThemes.isColumnMode(context)
-          ? noTransitionPageBuilder(context, state, child)
-          : MaterialPage(
-              key: state.pageKey,
-              restorationId: state.pageKey.value,
-              child: child,
-            );
+  ) => FluffyThemes.isColumnMode(context)
+      ? noTransitionPageBuilder(context, state, child)
+      : MaterialPage(
+          key: state.pageKey,
+          restorationId: state.pageKey.value,
+          child: child,
+        );
 }
